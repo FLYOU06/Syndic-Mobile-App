@@ -139,7 +139,7 @@
             "outputFile": "com.example.projet_syndic.app-merged_res-10:/values-night-v8_values-night-v8.arsc.flat",
             "map": [
                 {
-                    "source": "C:\\pfe\\pfe-syndic\\projet_syndic\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+                    "source": "C:\\pfe\\pfe-syndic\\front-end\\android\\app\\src\\main\\res\\values-night\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",
@@ -1082,7 +1082,7 @@
                     }
                 },
                 {
-                    "source": "C:\\pfe\\pfe-syndic\\projet_syndic\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "source": "C:\\pfe\\pfe-syndic\\front-end\\android\\app\\src\\main\\res\\values\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,31 +20,28 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Alike',
         scaffoldBackgroundColor: const Color(0xFFC2E9FF),
       ),
-      home: const LoginScreen(),
+      home: const OnboardingScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/login': (context) => const LoginScreen(),
       },
     );
   }
 }
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _OnboardingScreenState extends State<OnboardingScreen>
     with SingleTickerProviderStateMixin {
   late DraggableScrollableController _sheetController;
   late PageController _pageController;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _isLogin = true;
-  bool _showAuthForm = false;
   int _currentPage = 0;
   double _logoOffset = 0.0;
 
@@ -82,27 +81,19 @@ class _LoginScreenState extends State<LoginScreen>
     _sheetController.removeListener(_updateLogoPosition);
     _sheetController.dispose();
     _pageController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
   void _updateLogoPosition() {
     if (_sheetController.isAttached) {
       final currentSize = _sheetController.size;
-      // Calculer le déplacement du logo en fonction de la position de la fenêtre
-      // Lorsque la fenêtre est tout en bas (0.12), le logo est centré
-      // Lorsque la fenêtre monte, le logo monte aussi
       double offset = 0.0;
       
       if (currentSize < 0.5) {
-        // Entre 0.12 et 0.3 : le logo descend légèrement
         offset = (currentSize - 0.12) * -50;
       } else if (currentSize < 0.6) {
-        // Entre 0.3 et 0.6 : le logo monte progressivement
         offset = ((currentSize - 0.3) / 0.3) * -150 - 50;
       } else {
-        // Au-dessus de 0.6 : le logo reste en haut
         offset = -150;
       }
       
@@ -112,60 +103,8 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  void _showAuthFormScreen() async {
-    setState(() {
-      _showAuthForm = true;
-      _isLogin = true;
-    });
-
-    if (_sheetController.isAttached) {
-      await _sheetController.animateTo(
-        0.60,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _toggleAuthMode() {
-    setState(() {
-      _isLogin = !_isLogin;
-      _emailController.clear();
-      _passwordController.clear();
-    });
-  }
-
-  void _performLogin() => Navigator.pushNamed(context, '/home');
-  void _performSignup() => Navigator.pushNamed(context, '/home');
-
-  TextStyle get _titleStyle => const TextStyle(
-        color: Colors.white,
-        fontSize: 25,
-        fontWeight: FontWeight.w600,
-        fontFamily: 'Alike',
-      );
-
-  TextStyle get _subtitleStyle => const TextStyle(
-        color: Colors.white,
-        fontSize: 16,
-        fontFamily: 'Alike',
-      );
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: "   $hint",
-      hintStyle: const TextStyle(
-        fontFamily: 'Alike',
-        color: Color(0xFF004E7A),
-      ),
-      filled: true,
-      fillColor: const Color(0xFFC2E9FF),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(70),
-        borderSide: BorderSide.none,
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-    );
+  void _goToLogin() {
+    Navigator.pushNamed(context, '/login');
   }
 
   @override
@@ -202,11 +141,11 @@ class _LoginScreenState extends State<LoginScreen>
             controller: _sheetController,
             initialChildSize: 0.12,
             minChildSize: 0.12,
-            maxChildSize: _showAuthForm ? 0.60 : 1.0,
+            maxChildSize: 1.0,
             builder: (context, scrollController) => GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                if (_sheetController.isAttached && !_showAuthForm) {
+                if (_sheetController.isAttached) {
                   _sheetController.animateTo(
                     1.0,
                     duration: const Duration(milliseconds: 300),
@@ -219,9 +158,7 @@ class _LoginScreenState extends State<LoginScreen>
                   color: Color(0xFF004E7A),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                 ),
-                child: _showAuthForm
-                    ? _buildAuthForm(scrollController)
-                    : _buildOnboarding(scrollController),
+                child: _buildOnboarding(scrollController),
               ),
             ),
           ),
@@ -280,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen>
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut);
                         } else {
-                          _showAuthFormScreen();
+                          _goToLogin();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -341,107 +278,4 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
       );
-
-  Widget _buildAuthForm(ScrollController scrollController) {
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      children: [
-        _buildDragHandle(),
-        const SizedBox(height: 30),
-        Center(child: Text(_isLogin ? "Connexion" : "Inscription", style: _titleStyle)),
-        const SizedBox(height: 5),
-        Center(
-          child: Text(
-            _isLogin ? "Veuillez vous connecter" : "Créez votre compte",
-            style: _subtitleStyle,
-          ),
-        ),
-        const SizedBox(height: 55),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: TextField(
-            controller: _emailController,
-            style: const TextStyle(color: Color(0xFF004E7A), fontFamily: 'Alike'),
-            decoration: _inputDecoration("Email"),
-          ),
-        ),
-        const SizedBox(height: 15),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            style: const TextStyle(color: Color(0xFF004E7A), fontFamily: 'Alike'),
-            decoration: _inputDecoration("Mot de passe").copyWith(
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFF004E7A),
-                ),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-              ),
-            ),
-          ),
-        ),
-        if (!_isLogin) ...[
-          const SizedBox(height: 15),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: TextField(
-              obscureText: _obscurePassword,
-              style: const TextStyle(color: Color(0xFF004E7A), fontFamily: 'Alike'),
-              decoration: _inputDecoration("Confirmer mot de passe"),
-            ),
-          ),
-          const SizedBox(height: 15),
-        ],
-        if (_isLogin)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Mot de passe oublié ?",
-                style: _subtitleStyle,
-              ),
-            ),
-          ),
-        const SizedBox(height: 25),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-          child: ElevatedButton(
-            onPressed: _isLogin ? _performLogin : _performSignup,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC2E9FF),
-              foregroundColor: const Color(0xFF004E7A),
-              shape: const StadiumBorder(),
-              minimumSize: const Size(double.infinity, 50),
-              elevation: 0,
-            ),
-            child: Text(_isLogin ? "Connexion" : "S'inscrire",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _isLogin ? "Vous n'avez pas de compte ? " : "Vous avez déjà un compte ? ",
-              style: _subtitleStyle,
-            ),
-            GestureDetector(
-              onTap: _toggleAuthMode,
-              child: Text(
-                _isLogin ? "S'inscrire" : "Se connecter",
-                style: _subtitleStyle.copyWith(
-                    fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
 }

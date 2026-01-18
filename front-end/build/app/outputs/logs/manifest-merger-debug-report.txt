@@ -1,7 +1,7 @@
 -- Merging decision tree log ---
 application
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\AndroidManifest.xml:2:5-32:19
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\main\AndroidManifest.xml:2:5-32:19
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:24:5-31:19
 MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:24:5-31:19
 MERGED from [androidx.core:core:1.6.0] C:\Users\hp\.gradle\caches\transforms-3\c85c9ebcb3297a166772c0b37dcccb75\transformed\core-1.6.0\AndroidManifest.xml:24:5-89
@@ -9,17 +9,17 @@ MERGED from [androidx.core:core:1.6.0] C:\Users\hp\.gradle\caches\transforms-3\c
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\hp\.gradle\caches\transforms-3\07be62a8d164248e15b4dfeb96132622\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\hp\.gradle\caches\transforms-3\07be62a8d164248e15b4dfeb96132622\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.6.0] C:\Users\hp\.gradle\caches\transforms-3\c85c9ebcb3297a166772c0b37dcccb75\transformed\core-1.6.0\AndroidManifest.xml:24:18-86
 	android:name
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\main\AndroidManifest.xml
 manifest
-ADDED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\AndroidManifest.xml:1:1-33:12
-MERGED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\AndroidManifest.xml:1:1-33:12
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml:1:1-7:12
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml:1:1-7:12
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+ADDED from C:\pfe\pfe-syndic\front-end\android\app\src\main\AndroidManifest.xml:1:1-33:12
+MERGED from C:\pfe\pfe-syndic\front-end\android\app\src\main\AndroidManifest.xml:1:1-33:12
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml:1:1-7:12
 MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\3bc108d7320ebabd7b72bea90cb6a5f4\transformed\jetified-window-java-1.0.0-beta04\AndroidManifest.xml:17:1-23:12
 MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:17:1-33:12
 MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\hp\.gradle\caches\transforms-3\b08db8f123fe148d4630ebb6ffc2659e\transformed\fragment-1.1.0\AndroidManifest.xml:17:1-24:12
@@ -38,21 +38,21 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\hp
 MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\hp\.gradle\caches\transforms-3\d3ec0f661d4168cd1667291ad07fce5e\transformed\lifecycle-viewmodel-2.1.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\hp\.gradle\caches\transforms-3\69a690befa6d069f23915f6529865cdb\transformed\jetified-annotation-experimental-1.1.0\AndroidManifest.xml:17:1-24:12
 	package
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 	android:versionName
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 	android:versionCode
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 	xmlns:android
-		ADDED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\AndroidManifest.xml:1:11-69
+		ADDED from C:\pfe\pfe-syndic\front-end\android\app\src\main\AndroidManifest.xml:1:11-69
 uses-permission#android.permission.INTERNET
-ADDED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml:6:5-66
+ADDED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml:6:5-66
 	android:name
-		ADDED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml:6:22-64
+		ADDED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml:6:22-64
 uses-sdk
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
-INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\3bc108d7320ebabd7b72bea90cb6a5f4\transformed\jetified-window-java-1.0.0-beta04\AndroidManifest.xml:19:5-21:41
 MERGED from [androidx.window:window-java:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\3bc108d7320ebabd7b72bea90cb6a5f4\transformed\jetified-window-java-1.0.0-beta04\AndroidManifest.xml:19:5-21:41
 MERGED from [androidx.window:window:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:20:5-22:41
@@ -88,9 +88,9 @@ MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\hp\.gradle\c
 MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\hp\.gradle\caches\transforms-3\69a690befa6d069f23915f6529865cdb\transformed\jetified-annotation-experimental-1.1.0\AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.annotation:annotation-experimental:1.1.0] C:\Users\hp\.gradle\caches\transforms-3\69a690befa6d069f23915f6529865cdb\transformed\jetified-annotation-experimental-1.1.0\AndroidManifest.xml:20:5-22:41
 	android:targetSdkVersion
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\pfe\pfe-syndic\front-end\android\app\src\debug\AndroidManifest.xml
 uses-library#androidx.window.extensions
 ADDED from [androidx.window:window:1.0.0-beta04] C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:25:9-27:40
 	android:required

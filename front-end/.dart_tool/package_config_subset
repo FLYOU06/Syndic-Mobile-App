@@ -82,10 +82,6 @@ web
 3.1
 file:///C:/Users/hp/AppData/Local/Pub/Cache/hosted/pub.dev/web-0.1.4-beta/
 file:///C:/Users/hp/AppData/Local/Pub/Cache/hosted/pub.dev/web-0.1.4-beta/lib/
-projet_syndic
-3.1
-file:///C:/Users/hp/Documents/GitHub/Syndic-Mobile-App/front-end/
-file:///C:/Users/hp/Documents/GitHub/Syndic-Mobile-App/front-end/lib/
 sky_engine
 3.0
 file:///C:/pfe/flutter/bin/cache/pkg/sky_engine/
@@ -98,4 +94,8 @@ flutter_test
 3.0
 file:///C:/pfe/flutter/packages/flutter_test/
 file:///C:/pfe/flutter/packages/flutter_test/lib/
+projet_syndic
+3.1
+file:///C:/pfe/pfe-syndic/projet_syndic/
+file:///C:/pfe/pfe-syndic/projet_syndic/lib/
 2

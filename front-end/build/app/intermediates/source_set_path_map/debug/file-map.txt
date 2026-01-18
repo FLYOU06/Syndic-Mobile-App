@@ -2,10 +2,10 @@ com.example.projet_syndic.app-jetified-window-java-1.0.0-beta04-0 C:\Users\hp\.g
 com.example.projet_syndic.app-jetified-annotation-experimental-1.1.0-1 C:\Users\hp\.gradle\caches\transforms-3\69a690befa6d069f23915f6529865cdb\transformed\jetified-annotation-experimental-1.1.0\res
 com.example.projet_syndic.app-core-1.6.0-2 C:\Users\hp\.gradle\caches\transforms-3\c85c9ebcb3297a166772c0b37dcccb75\transformed\core-1.6.0\res
 com.example.projet_syndic.app-jetified-window-1.0.0-beta04-3 C:\Users\hp\.gradle\caches\transforms-3\f1431971b773bc5b0d242ee486b4ec79\transformed\jetified-window-1.0.0-beta04\res
-com.example.projet_syndic.app-debug-4 C:\pfe\pfe-syndic\projet_syndic\android\app\src\debug\res
-com.example.projet_syndic.app-main-5 C:\pfe\pfe-syndic\projet_syndic\android\app\src\main\res
-com.example.projet_syndic.app-pngs-6 C:\pfe\pfe-syndic\projet_syndic\build\app\generated\res\pngs\debug
-com.example.projet_syndic.app-resValues-7 C:\pfe\pfe-syndic\projet_syndic\build\app\generated\res\resValues\debug
-com.example.projet_syndic.app-packageDebugResources-8 C:\pfe\pfe-syndic\projet_syndic\build\app\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.example.projet_syndic.app-packageDebugResources-9 C:\pfe\pfe-syndic\projet_syndic\build\app\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.example.projet_syndic.app-merged_res-10 C:\pfe\pfe-syndic\projet_syndic\build\app\intermediates\merged_res\debug
+com.example.projet_syndic.app-debug-4 C:\pfe\pfe-syndic\front-end\android\app\src\debug\res
+com.example.projet_syndic.app-main-5 C:\pfe\pfe-syndic\front-end\android\app\src\main\res
+com.example.projet_syndic.app-pngs-6 C:\pfe\pfe-syndic\front-end\build\app\generated\res\pngs\debug
+com.example.projet_syndic.app-resValues-7 C:\pfe\pfe-syndic\front-end\build\app\generated\res\resValues\debug
+com.example.projet_syndic.app-packageDebugResources-8 C:\pfe\pfe-syndic\front-end\build\app\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.example.projet_syndic.app-packageDebugResources-9 C:\pfe\pfe-syndic\front-end\build\app\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.example.projet_syndic.app-merged_res-10 C:\pfe\pfe-syndic\front-end\build\app\intermediates\merged_res\debug

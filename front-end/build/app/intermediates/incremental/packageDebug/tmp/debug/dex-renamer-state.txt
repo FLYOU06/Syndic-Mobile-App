@@ -1,4 +1,4 @@
-#Thu Dec 25 21:04:52 WEST 2025
-base.0=C\:\\pfe\\pfe-syndic\\projet_syndic\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
+#Sun Jan 18 16:35:18 WEST 2026
+base.0=C\:\\pfe\\pfe-syndic\\front-end\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
 path.0=classes.dex
 renamed.0=classes.dex
