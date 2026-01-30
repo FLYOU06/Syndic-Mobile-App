@@ -1,6 +1,6 @@
 # Syndic-Mobile-App
 A mobile application for managing condominiums. Replaces the old Microsoft Access system, providing secure, real-time access to property data from any mobile device. Allows practical and efficient management of condominium information on the go.
-#Base de donnée
+# Base-de-donnée
 Ce schéma de base de données est conçu pour gérer un système de copropriété (Syndic). Il prend en charge l'authentification des utilisateurs, les informations des copropriétaires, la gestion des biens immobiliers et le suivi financier (dettes théoriques vs paiements réels).
 
 1. Schéma de la Base et Responsabilités des Tables
