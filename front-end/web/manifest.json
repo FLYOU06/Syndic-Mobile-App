@@ -1,6 +1,6 @@
 {
-    "name": "projet_syndic",
-    "short_name": "projet_syndic",
+    "name": "syndic_app_new",
+    "short_name": "syndic_app_new",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

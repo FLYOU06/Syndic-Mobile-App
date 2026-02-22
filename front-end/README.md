@@ -1,4 +1,4 @@
-# projet_syndic
+# syndic_app_new
 
 A new Flutter project.
 
