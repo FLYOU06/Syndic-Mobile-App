@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'NotificationsScreen.dart';
 import 'habitants_screen.dart';
-
+import 'charges.dart';
 
 const Color primaryBlue = Color(0xFF004E7A);
 
@@ -23,24 +23,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: const Color(0xFFF6F7FB),
 drawer: AppDrawer(
   selectedMenu: selectedMenu,
-  onMenuSelected: (menu) {
-    if (menu == selectedMenu) return;
+onMenuSelected: (menu) {
+  if (menu == selectedMenu) return;
 
-    setState(() {
-      selectedMenu = menu;
-    });
+  setState(() {
+    selectedMenu = menu;
+  });
 
-    Navigator.of(context).pop(); // fermer le drawer
+  Navigator.of(context).pop(); // fermer le drawer
 
-    if (menu == "Habitants") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const HabitantsScreen(),
-        ),
-      );
-    }
-  },
+  if (menu == "Habitants") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HabitantsScreen(),
+      ),
+    );
+  } else if (menu == "Charges") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ChargesScreen(),
+      ),
+    );
+  }
+},
 ),
 
       body: SingleChildScrollView(

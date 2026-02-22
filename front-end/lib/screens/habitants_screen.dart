@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'add_habitant_screen.dart';
 import 'habitant_details_screen.dart';
+import 'charges.dart';
+
 
 const Color primaryBlue = Color(0xFF004E7A);
 const Color bgLight = Color(0xFFF6F7FB);
@@ -401,18 +403,28 @@ Widget _buildHabitantCard(Map<String, String> h) {
   );
 }
   // ================= DRAWER =================
-  Widget _buildDrawer() {
-    return AppDrawer(
-      selectedMenu: "Habitants",
-      onMenuSelected: (menu) {
-        if (menu == "Dashboard") {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (_) => const DashboardScreen()));
-        }
-      },
-    );
-  }
+Widget _buildDrawer() {
+  return AppDrawer(
+    selectedMenu: "Habitants",
+    onMenuSelected: (menu) {
+      if (menu == "Habitants") return;
 
+      Navigator.of(context).pop(); // fermer le drawer
+
+      if (menu == "Dashboard") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      } else if (menu == "Charges") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ChargesScreen()),
+        );
+      }
+    },
+  );
+}
   // ================= ADD HABITANT =================
   Future<void> _addHabitant() async {
     final newHabitant = await Navigator.push(
@@ -428,5 +440,103 @@ Widget _buildHabitantCard(Map<String, String> h) {
         }
       });
     }
+  }
+}
+class AppDrawer extends StatelessWidget {
+  final String selectedMenu;
+  final Function(String) onMenuSelected;
+
+  const AppDrawer({
+    super.key,
+    required this.selectedMenu,
+    required this.onMenuSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> menuItems = [
+      {"icon": Icons.dashboard, "title": "Dashboard"},
+      {"icon": Icons.task, "title": "Habitants"},
+      {"icon": Icons.calendar_month, "title": "Charges"},
+      {"icon": Icons.message, "title": "Messages"},
+      {"icon": Icons.settings, "title": "Settings"},
+      {"icon": Icons.person, "title": "Profile"},
+    ];
+
+    return Drawer(
+      backgroundColor: primaryBlue,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 80,
+              height: 90,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Bienvenue sur",
+              style: TextStyle(
+                color: Color(0xFFC2E9FF),
+                fontSize: 15,
+              ),
+            ),
+            const Text(
+              "SyndiControl",
+              style: TextStyle(
+                color: Color(0xFFC2E9FF),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            ...menuItems.map((item) {
+              final bool isSelected = selectedMenu == item["title"];
+              return GestureDetector(
+                onTap: () => onMenuSelected(item["title"]),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white24 : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        item["icon"],
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFFC2E9FF),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        item["title"],
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFFC2E9FF),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+    );
   }
 }
