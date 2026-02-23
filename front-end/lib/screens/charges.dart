@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'habitants_screen.dart';
+import 'detail_charge_screen.dart';
 
 const Color primaryBlue = Color(0xFF004E7A);
 const Color bgLight = Color(0xFFF4F6FA);
@@ -118,7 +119,7 @@ class ChargesScreen extends StatelessWidget {
               // =====================================================
               // DEUX CARTES FLOTTANTES (comme dashboard)
               // =====================================================
-Positioned(
+const Positioned(
   bottom: -50, // moitié en dehors du header
   left: 16,
   right: 16,
@@ -135,7 +136,7 @@ Positioned(
           icon: Icons.warning_amber_rounded,
         ),
       ),
-      const SizedBox(width: 12),
+      SizedBox(width: 12),
       Expanded(
         child: DashboardKpiCard(
           title: "Le montant total",
@@ -167,8 +168,8 @@ Positioned(
                   title: "Eau",
                   date: "Janvier 2024",
                   amount: "10 000 MAD",
-                  progress: 0.0,
-                  color: Color.fromARGB(255, 21, 166, 239),
+                  progress: 0.4,
+                  color: Color.fromARGB(255, 11, 116, 168),
                   icon: Icons.water_drop,
                 ),
                 ChargeCard(
@@ -176,7 +177,7 @@ Positioned(
                   date: "Trimestre 1 2024",
                   amount: "10 000 MAD",
                   progress: 0.6,
-                  color: Color.fromARGB(255, 210, 244, 42),
+                  color: Color.fromARGB(255, 246, 217, 55),
                   icon: Icons.flash_on,
                 ),
                 ChargeCard(
@@ -192,8 +193,8 @@ Positioned(
                   date: "Janvier 2024",
                   amount: "5 000 MAD",
                   progress: 0.0,
-                  color: Color(0xFFD64545),
-                  icon: Icons.warning,
+                  color:  Color.fromARGB(255, 203, 88, 120),
+                  icon: Icons.build,
                 ),
               ],
             ),
@@ -457,9 +458,25 @@ Widget build(BuildContext context) {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        debugPrint("Voir détails $title");
-                      },
+ onPressed: () {
+  final totalValue =
+      double.parse(amount.replaceAll(" MAD", "").replaceAll(" ", ""));
+  final paidValue = totalValue * progress;
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => DetailChargeScreen(
+        title: title,
+        date: date,
+        total: totalValue,
+        paid: paidValue,
+        color: color,
+        icon: icon,
+      ),
+    ),
+  );
+},
                       child: const Text(
                         "Voir détails",
                         style: TextStyle(fontSize: 12),
