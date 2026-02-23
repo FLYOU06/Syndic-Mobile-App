@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'dart:async';
 
 class DetailChargeScreen extends StatefulWidget {
   final String title;
@@ -259,7 +258,7 @@ Container(
   Widget _buildAnimatedDonutChart() {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: progress),
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
       curve: Curves.easeInOutCubicEmphasized,
       builder: (context, value, child) {
         return SizedBox(
@@ -315,7 +314,7 @@ Container(
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: animatedProgress * 100),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
             builder: (context, value, child) {
               return Text(
                 "${value.toStringAsFixed(0)}%",
@@ -327,7 +326,7 @@ Container(
           const SizedBox(height: 6),
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: widget.total),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 1),
             builder: (context, value, child) {
               return Text(
                 "${value.toInt()} MAD",

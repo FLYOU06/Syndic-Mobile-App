@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'habitants_screen.dart';
 import 'detail_charge_screen.dart';
+import 'add_charge_screen.dart';
 
 const Color primaryBlue = Color(0xFF004E7A);
 const Color bgLight = Color(0xFFF4F6FA);
@@ -107,7 +108,12 @@ class ChargesScreen extends StatelessWidget {
                               color: Colors.white,
                               size: 26,
                             ),
-                            onPressed: () {},
+                           onPressed: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const AddChargeScreen()),
+  );
+},
                           ),
                         ],
                       ),
@@ -128,7 +134,7 @@ const Positioned(
       Expanded(
         child: DashboardKpiCard(
           title: "Charges impayées",
-          value: "3,200 €",
+          value: "3,200   MAD",
           subtitle: "Ce mois",
           gradientColors: [Color(0xFF004E7A), Color(0xFF006DAA)], // <-- ici
           valueColor: Colors.white,
@@ -140,7 +146,7 @@ const Positioned(
       Expanded(
         child: DashboardKpiCard(
           title: "Le montant total",
-          value: "5,300 €",
+          value: "5,300 MAD",
           subtitle: "Ce mois",
           gradientColors: [Color(0xFF004E7A), Color(0xFF006DAA)], // <-- ici
           valueColor: Colors.white,
@@ -166,7 +172,7 @@ const Positioned(
               children: const [
                 ChargeCard(
                   title: "Eau",
-                  date: "Janvier 2024",
+                  date: "12/03/2026",
                   amount: "10 000 MAD",
                   progress: 0.4,
                   color: Color.fromARGB(255, 11, 116, 168),
@@ -174,7 +180,7 @@ const Positioned(
                 ),
                 ChargeCard(
                   title: "Électricité",
-                  date: "Trimestre 1 2024",
+                  date: "12/02/2026",
                   amount: "10 000 MAD",
                   progress: 0.6,
                   color: Color.fromARGB(255, 246, 217, 55),
@@ -182,7 +188,7 @@ const Positioned(
                 ),
                 ChargeCard(
                   title: "Jardinier",
-                  date: "Trimestre 1 2024",
+                  date: "14/03/2026",
                   amount: "10 000 MAD",
                   progress: 1.0,
                   color: Color(0xFF1B8F6A),
@@ -190,7 +196,7 @@ const Positioned(
                 ),
                 ChargeCard(
                   title: "Entretien",
-                  date: "Janvier 2024",
+                  date: "10/01/2026",
                   amount: "5 000 MAD",
                   progress: 0.0,
                   color:  Color.fromARGB(255, 203, 88, 120),
