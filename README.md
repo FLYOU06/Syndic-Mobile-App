@@ -1,6 +1,6 @@
-# 📱 SyndiControl – Front-End Mobile (Flutter)
+#  SyndiControl – Front-End Mobile (Flutter)
 
-## 👨‍💻 Développeur Front-End  
+##  Développeur Front-End  
 ### Jihad Chakir
 
 ---
@@ -11,21 +11,21 @@
 
 Cette partie du projet concerne exclusivement le **Front-End mobile**, incluant :
 
-- 🎨 Conception UI/UX  
-- 📱 Gestion des écrans  
-- 🔀 Navigation  
-- 🧠 Gestion d’état  
-- 🔗 Intégration avec l’API backend  
+-  Conception UI/UX  
+-  Gestion des écrans  
+-  Navigation  
+-  Gestion d’état  
+-  Intégration avec l’API backend  
 
 L’objectif est d’offrir une interface intuitive, moderne et responsive pour la gestion des habitants et des charges.
 
 ---
 
-# 🚀 Fonctionnalités Implémentées (Front-End)
+#  Fonctionnalités Implémentées (Front-End)
 
 ---
 
-# 📊 1️⃣ Dashboard
+#  1️⃣ Dashboard
 
 Le tableau de bord affiche :
 
@@ -44,15 +44,15 @@ Le dashboard centralise les informations importantes de la résidence.
 
 ---
 
-# 👥 2️⃣ Gestion des Habitants
+#  2️⃣ Gestion des Habitants
 
-## ✅ Fonctionnalités :
+##  Fonctionnalités :
 
 - Affichage de la liste des habitants  
 - Recherche d’un habitant  
 - Séparation en deux catégories :
-  - 🏠 Propriétaires  
-  - 🏢 Locataires  
+  -  Propriétaires  
+  -  Locataires  
 - Ajout d’un habitant  
 - Modification d’un habitant  
 - Suppression d’un habitant  
@@ -70,7 +70,7 @@ Le dashboard centralise les informations importantes de la résidence.
 
 ---
 
-# 💰 3️⃣ Gestion des Charges
+#  3️⃣ Gestion des Charges
 
 ## 📌 Affichage des charges :
 
@@ -90,7 +90,7 @@ Le dashboard centralise les informations importantes de la résidence.
 
 ---
 
-# 🔍 4️⃣ Détail d’une Charge
+# 4️⃣ Détail d’une Charge
 
 Lorsqu’on clique sur **“Voir détail”**, on peut voir :
 
@@ -103,7 +103,7 @@ Lorsqu’on clique sur **“Voir détail”**, on peut voir :
 
 ---
 
-# 🛠️ Technologies Utilisées
+#  Technologies Utilisées
 
 - Flutter  
 - Dart  
@@ -116,39 +116,38 @@ Lorsqu’on clique sur **“Voir détail”**, on peut voir :
 
 # 📂 Architecture Front-End
 
+```text
 lib/
-│
-├── main.dart
-│
-├── screens/
-│ ├── login_screen.dart
-│ ├── signup_screen.dart
-│ ├── dashboard_screen.dart
-│ ├── habitants_screen.dart
-│ ├── habitant_details_screen.dart
-│ ├── add_habitant_screen.dart
-│ ├── EditHabitantScreen.dart
-│ ├── charges.dart
-│ ├── add_charge_screen.dart
-│ ├── detail_charge_screen.dart
-│ └── NotificationsScreen.dart
-│
-├── services/
-│ ├── api_service.dart
-│ ├── auth_service.dart
-│ └── token_storage.dart
+ ├── main.dart
+ ├── screens/
+ │    ├── login_screen.dart
+ │    ├── signup_screen.dart
+ │    ├── dashboard_screen.dart
+ │    ├── habitants_screen.dart
+ │    ├── habitant_details_screen.dart
+ │    ├── add_habitant_screen.dart
+ │    ├── edit_habitant_screen.dart
+ │    ├── charges.dart
+ │    ├── add_charge_screen.dart
+ │    ├── detail_charge_screen.dart
+ │    └── notifications_screen.dart
+ └── services/
+      ├── api_service.dart
+      ├── auth_service.dart
+      └── token_storage.dart
+```
 
 
 ---
 
-# 🎯 Mes Responsabilités en tant que Front-End Developer
+#  Mes Responsabilités en tant que Front-End Developer
 
-- 🎨 Conception complète des interfaces UI  
-- 📱 Implémentation des écrans Flutter  
-- 🔀 Navigation entre pages  
-- 📝 Gestion des formulaires  
-- 📊 Gestion des statuts dynamiques des charges  
-- 🔗 Consommation des API REST  
-- ⚠️ Gestion des erreurs réseau  
-- 🏗️ Séparation logique UI / Services  
-- 🚀 Amélioration de l’expérience utilisateur  
+-  Conception complète des interfaces UI  
+-  Implémentation des écrans Flutter  
+-  Navigation entre pages  
+-  Gestion des formulaires  
+-  Gestion des statuts dynamiques des charges  
+-  Consommation des API REST  
+-  Gestion des erreurs réseau  
+-  Séparation logique UI / Services  
+-  Amélioration de l’expérience utilisateur  
