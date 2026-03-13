@@ -3,6 +3,8 @@ import 'dashboard_screen.dart';
 import 'habitants_screen.dart';
 import 'detail_charge_screen.dart';
 import 'add_charge_screen.dart';
+import 'assembly_dashboard_screen.dart';
+import 'paramètres.dart';
 
 const Color primaryBlue = Color(0xFF004E7A);
 const Color bgLight = Color(0xFFF4F6FA);
@@ -35,6 +37,18 @@ class ChargesScreen extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const HabitantsScreen()),
+            );
+          }
+                    if (menu == "Paramètres") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            );
+          }
+                    if (menu == "Assemblée Générale") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const AssemblyDashboardScreen()),
             );
           }
         },
@@ -522,9 +536,8 @@ class AppDrawer extends StatelessWidget {
       {"icon": Icons.dashboard, "title": "Dashboard"},
       {"icon": Icons.task, "title": "Habitants"},
       {"icon": Icons.calendar_month, "title": "Charges"},
-      {"icon": Icons.message, "title": "Messages"},
-      {"icon": Icons.settings, "title": "Settings"},
-      {"icon": Icons.person, "title": "Profile"},
+      {"icon": Icons.message, "title": "Assemblée Générale"},
+      {"icon": Icons.settings, "title": "Paramètres"},
     ];
 
     return Drawer(

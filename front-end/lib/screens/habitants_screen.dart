@@ -3,6 +3,9 @@ import 'dashboard_screen.dart';
 import 'add_habitant_screen.dart';
 import 'habitant_details_screen.dart';
 import 'charges.dart';
+import 'assembly_dashboard_screen.dart';
+import 'paramètres.dart';
+
 
 
 const Color primaryBlue = Color(0xFF004E7A);
@@ -416,10 +419,22 @@ Widget _buildDrawer() {
           context,
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
+      }
+         if (menu == "Assemblée Générale") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssemblyDashboardScreen()),
+        );
       } else if (menu == "Charges") {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ChargesScreen()),
+        );
+      }
+       else if (menu == "Paramètres") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
         );
       }
     },
@@ -458,9 +473,8 @@ class AppDrawer extends StatelessWidget {
       {"icon": Icons.dashboard, "title": "Dashboard"},
       {"icon": Icons.task, "title": "Habitants"},
       {"icon": Icons.calendar_month, "title": "Charges"},
-      {"icon": Icons.message, "title": "Messages"},
-      {"icon": Icons.settings, "title": "Settings"},
-      {"icon": Icons.person, "title": "Profile"},
+      {"icon": Icons.message, "title": "Assemblée Générale"},
+      {"icon": Icons.settings, "title": "Paramètres"},
     ];
 
     return Drawer(

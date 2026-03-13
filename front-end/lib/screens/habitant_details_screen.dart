@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'EditHabitantScreen.dart';
 
+
 class HabitantDetailsScreen extends StatefulWidget {
   final Map<String, String> habitant;
 

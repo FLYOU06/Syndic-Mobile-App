@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';          // ← ajouté
+import 'screens/app_state.dart';                           // ← ajouté
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/assembly_dashboard_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    // ← On enveloppe tout dans le Provider
+    ChangeNotifierProvider(
+      create: (_) => AppState(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,24 +21,45 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<AppState>(); // ← écoute les changements
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SyndiControl',
+
+      // ── Thème clair (ton thème original) ──────────────────────────
       theme: ThemeData(
         primarySwatch: Colors.blue,
         fontFamily: 'Alike',
         scaffoldBackgroundColor: const Color(0xFFC2E9FF),
       ),
+
+      // ── Thème sombre ───────────────────────────────────────────────
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        fontFamily: 'Alike',
+        scaffoldBackgroundColor: const Color(0xFF0D1117),
+        cardColor: const Color(0xFF161B22),
+        primarySwatch: Colors.blue,
+      ),
+
+      // ← AppState contrôle le thème (light ou dark)
+      themeMode: appState.themeMode,
+
       home: const OnboardingScreen(),
       routes: {
-        '/home': (context) => const DashboardScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/login': (context) => const LoginScreen(),
+        '/home':     (context) => const DashboardScreen(),
+        '/signup':   (context) => const SignupScreen(),
+        '/login':    (context) => const LoginScreen(),
+        '/assembly': (context) => const AssemblyDashboardScreen(),
       },
     );
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+//  Onboarding — CODE ORIGINAL 100% INTACT
+// ══════════════════════════════════════════════════════════════════
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -48,19 +78,22 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   final List<Map<String, dynamic>> _pages = [
     {
       'image': 'assets/logo2.png',
-      'text': "Bienvenue dans votre espace de gestion ! Chaque tâche devient plus simple et chaque copropriété mérite une gestion claire et efficace.",
+      'text':
+          "Bienvenue dans votre espace de gestion ! Chaque tâche devient plus simple et chaque copropriété mérite une gestion claire et efficace.",
       'width': 300.0,
       'height': 200.0,
     },
     {
       'image': 'assets/logo3.png',
-      'text': "Avec SyndiControl, la gestion de votre copropriété devient intuitive et transparente : communiquez facilement avec les copropriétaires.",
+      'text':
+          "Avec SyndiControl, la gestion de votre copropriété devient intuitive et transparente : communiquez facilement avec les copropriétaires.",
       'width': 400.0,
       'height': 200.0,
     },
     {
       'image': 'assets/logo5.png',
-      'text': "Le tout depuis une seule application pratique et sécurisée. Cliquez sur Suivant pour vous connecter.",
+      'text':
+          "Le tout depuis une seule application pratique et sécurisée. Cliquez sur Suivant pour vous connecter.",
       'width': 200.0,
       'height': 200.0,
     },
@@ -71,8 +104,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.initState();
     _sheetController = DraggableScrollableController();
     _pageController = PageController();
-    
-    // Écouter les changements de position de la fenêtre glissante
     _sheetController.addListener(_updateLogoPosition);
   }
 
@@ -88,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     if (_sheetController.isAttached) {
       final currentSize = _sheetController.size;
       double offset = 0.0;
-      
+
       if (currentSize < 0.5) {
         offset = (currentSize - 0.12) * -50;
       } else if (currentSize < 0.6) {
@@ -96,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       } else {
         offset = -150;
       }
-      
+
       setState(() {
         _logoOffset = offset;
       });
@@ -112,7 +143,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Le logo et le titre avec animation
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             top: MediaQuery.of(context).size.height * 0.3 + _logoOffset,
@@ -135,8 +165,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ],
             ),
           ),
-          
-          // Fenêtre glissante
           DraggableScrollableSheet(
             controller: _sheetController,
             initialChildSize: 0.12,
@@ -156,7 +184,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               child: Container(
                 decoration: const BoxDecoration(
                   color: Color(0xFF004E7A),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(30)),
                 ),
                 child: _buildOnboarding(scrollController),
               ),
@@ -177,7 +206,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           child: PageView.builder(
             controller: _pageController,
             itemCount: _pages.length,
-            onPageChanged: (index) => setState(() => _currentPage = index),
+            onPageChanged: (index) =>
+                setState(() => _currentPage = index),
             itemBuilder: (context, index) {
               final page = _pages[index];
               return ListView(
@@ -194,7 +224,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   ),
                   const SizedBox(height: 40),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
                       page['text'],
                       textAlign: TextAlign.center,
@@ -214,7 +245,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       onPressed: () {
                         if (_currentPage < _pages.length - 1) {
                           _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
+                              duration:
+                                  const Duration(milliseconds: 300),
                               curve: Curves.easeInOut);
                         } else {
                           _goToLogin();
@@ -260,7 +292,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           width: i == _currentPage ? 26 : 6,
           height: 6,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(i == _currentPage ? 1 : 0.5),
+            color: Colors.white
+                .withOpacity(i == _currentPage ? 1 : 0.5),
             borderRadius: BorderRadius.circular(10),
           ),
         ),

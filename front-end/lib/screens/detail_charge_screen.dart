@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 
+// ══════════════════════════════════════════════════════════════════
+//  DESIGN TOKENS
+// ══════════════════════════════════════════════════════════════════
+class _DC {
+  static const bg       = Color(0xFFF2F5FB);
+  static const surface  = Color(0xFFFFFFFF);
+  static const border   = Color(0xFFE8EDF5);
+  static const textPrimary   = Color(0xFF0F1C2E);
+  static const textSecondary = Color(0xFF6B7A94);
+  static const textMuted     = Color(0xFFADB8CC);
+  static const green    = Color(0xFF00B87A);
+  static const greenBg  = Color(0xFFE8F9F3);
+  static const red      = Color(0xFFEF4444);
+  static const redBg    = Color(0xFFFEF2F2);
+  static const amber    = Color(0xFFF59E0B);
+  static const amberBg  = Color(0xFFFFFBEB);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  NOTIFICATION STATE MODEL
+// ══════════════════════════════════════════════════════════════════
+enum AlertStatus { none, sending, sent }
+
+// ══════════════════════════════════════════════════════════════════
+//  MAIN SCREEN
+// ══════════════════════════════════════════════════════════════════
 class DetailChargeScreen extends StatefulWidget {
   final String title;
   final String date;
@@ -24,106 +51,270 @@ class DetailChargeScreen extends StatefulWidget {
 }
 
 class _DetailChargeScreenState extends State<DetailChargeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _progressAnimation;
-  bool _isPaidExpanded = false;
+    with TickerProviderStateMixin {
+
+  late AnimationController _progressCtrl;
+  late Animation<double> _progressAnim;
+  late AnimationController _headerCtrl;
+  late Animation<double> _headerAnim;
+
+  bool _isPaidExpanded   = false;
   bool _isUnpaidExpanded = false;
 
-  // Données simulées
+  // Alert status per habitant (by name key)
+  final Map<String, AlertStatus> _alertStatus = {};
+
+  // ── DATA ──────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _payes = [
-    {"nom": "Adam Lahyan", "montant": 1000, "avatar": "A", "date": "15 Jan 2024"},
-    {"nom": "Sofia Benali", "montant": 1000, "avatar": "S", "date": "12 Jan 2024"},
-    {"nom": "Youssef Amrani", "montant": 1000, "avatar": "Y", "date": "10 Jan 2024"},
+    {"nom": "Adam Lahyan",      "montant": 1000, "initials": "AL", "date": "15 Jan 2024", "apt": "A12"},
+    {"nom": "Sofia Benali",     "montant": 1000, "initials": "SB", "date": "12 Jan 2024", "apt": "B04"},
+    {"nom": "Youssef Amrani",   "montant": 1000, "initials": "YA", "date": "10 Jan 2024", "apt": "C07"},
   ];
 
   final List<Map<String, dynamic>> _impayes = [
-    {"nom": "Omar Nassiri", "montant": 1000, "avatar": "O", "date": "En retard"},
-    {"nom": "Aya Saidi", "montant": 1000, "avatar": "A", "date": "En retard"},
-    {"nom": "Karim El Idrissi", "montant": 1000, "avatar": "K", "date": "En retard"},
-    {"nom": "Leila Benjelloun", "montant": 1000, "avatar": "L", "date": "En retard"},
+    {"nom": "Omar Nassiri",      "montant": 1000, "initials": "ON", "date": "En retard", "apt": "A03"},
+    {"nom": "Aya Saidi",         "montant": 1000, "initials": "AS", "date": "En retard", "apt": "B11"},
+    {"nom": "Karim El Idrissi",  "montant": 1000, "initials": "KE", "date": "En retard", "apt": "C02"},
+    {"nom": "Leila Benjelloun",  "montant": 1000, "initials": "LB", "date": "En retard", "apt": "D08"},
   ];
 
-  double get progress => widget.paid / widget.total;
-  String get status {
-  final progress = widget.paid / widget.total;
+  double get _progress => widget.paid / widget.total;
 
-  if (progress == 1) return "Soldée";
-  if (progress == 0) return "Impayée";
-  return "Partiellement payée";
-}
-
-Color get statusColor {
-  final progress = widget.paid / widget.total;
-
-  if (progress == 1) return Color.fromARGB(255, 21, 56, 19);
-  if (progress == 0) return Color.fromARGB(255, 21, 56, 19);
-  return Color.fromARGB(255, 21, 56, 19);
-}
-String get description {
-  switch (widget.title.toLowerCase()) {
-    case "eau":
-      return "Cette charge couvre la consommation d’eau utilisée dans les parties communes de l’immeuble. Elle inclut le nettoyage des couloirs, escaliers, halls et l’arrosage des espaces communs.";
-
-    case "électricité":
-      return "Cette charge couvre l’électricité utilisée dans les parties communes. Elle inclut l’éclairage des escaliers, couloirs, ascenseurs et équipements collectifs.";
-
-    case "jardinier":
-      return "Cette charge concerne l’entretien des espaces verts de la résidence. Elle comprend la tonte, la taille des plantes, l’arrosage et le nettoyage du jardin.";
-
-    case "entretien":
-      return "Cette charge concerne l’entretien général et la maintenance des parties communes de l’immeuble. Elle inclut les petites réparations, l’entretien des équipements et la préservation du bon état du bâtiment."; 
-
-    default:
-      return "Charge mensuelle liée au fonctionnement général et à l'entretien de l'immeuble.";
+  String get _status {
+    if (_progress >= 1.0) return "Soldée";
+    if (_progress == 0.0) return "Impayée";
+    return "Partielle";
   }
-}
+
+  Color get _statusColor {
+    if (_progress >= 1.0) return _DC.green;
+    if (_progress == 0.0) return _DC.red;
+    return _DC.amber;
+  }
+
+  Color get _statusBg {
+    if (_progress >= 1.0) return _DC.greenBg;
+    if (_progress == 0.0) return _DC.redBg;
+    return _DC.amberBg;
+  }
+
+  String get _description {
+    switch (widget.title.toLowerCase()) {
+      case "eau":
+        return "Consommation d'eau dans les parties communes : nettoyage des couloirs, escaliers, halls et arrosage des espaces verts.";
+      case "électricité":
+        return "Électricité des parties communes : éclairage des escaliers, couloirs, ascenseurs et équipements collectifs.";
+      case "jardinier":
+        return "Entretien des espaces verts : tonte, taille, arrosage et nettoyage du jardin de la résidence.";
+      case "entretien":
+        return "Maintenance générale des parties communes : petites réparations, entretien des équipements et préservation du bâtiment.";
+      default:
+        return "Charge mensuelle liée au fonctionnement général et à l'entretien de l'immeuble.";
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-_animationController = AnimationController(
-  vsync: this,
-  duration: const Duration(milliseconds: 1600),
-);
 
-_progressAnimation = Tween<double>(
-  begin: 0,
-  end: progress,
-).animate(
-  CurvedAnimation(
-    parent: _animationController,
-    curve: Curves.easeInOutCubicEmphasized,
-  ),
-);
+    _progressCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+    _progressAnim = Tween<double>(begin: 0, end: _progress).animate(
+      CurvedAnimation(parent: _progressCtrl, curve: Curves.easeInOutCubicEmphasized),
+    );
 
-_animationController.forward();
+    _headerCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _headerAnim = CurvedAnimation(parent: _headerCtrl, curve: Curves.easeOut);
+
+    _progressCtrl.forward();
+    _headerCtrl.forward();
+
+    // Init alert status for all unpaid habitants
+    for (final h in _impayes) {
+      _alertStatus[h['nom']] = AlertStatus.none;
+    }
+    // Paid habitants have a different kind of alert (confirmation)
+    for (final h in _payes) {
+      _alertStatus[h['nom']] = AlertStatus.none;
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _progressCtrl.dispose();
+    _headerCtrl.dispose();
     super.dispose();
   }
 
+  // ── SEND NOTIFICATION ─────────────────────────────────────────
+  Future<void> _sendAlert(String name, bool hasPaid) async {
+    if (_alertStatus[name] == AlertStatus.sent) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _alertStatus[name] = AlertStatus.sending);
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    if (!mounted) return;
+    setState(() => _alertStatus[name] = AlertStatus.sent);
+
+    final msg = hasPaid
+        ? "Confirmation de paiement envoyée à $name ✓"
+        : "Rappel de paiement envoyé à $name";
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(children: [
+          Icon(hasPaid ? Icons.check_circle_rounded : Icons.notifications_active_rounded,
+              color: Colors.white, size: 18),
+          const SizedBox(width: 10),
+          Expanded(child: Text(msg,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+        ]),
+        backgroundColor: hasPaid ? _DC.green : _DC.amber,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // ── SHOW ALERT DIALOG ─────────────────────────────────────────
+  void _showAlertDialog(String name, bool hasPaid, String apt) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.45),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: _DC.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: hasPaid ? _DC.greenBg : _DC.amberBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  hasPaid ? Icons.check_circle_outline_rounded : Icons.notifications_none_rounded,
+                  size: 32,
+                  color: hasPaid ? _DC.green : _DC.amber,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                hasPaid ? "Envoyer une confirmation" : "Envoyer un rappel",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _DC.textPrimary),
+              ),
+              const SizedBox(height: 8),
+
+              // Subtitle
+              Text(
+                hasPaid
+                    ? "Envoyer une notification de confirmation de paiement à $name (Apt. $apt) ?"
+                    : "Envoyer un rappel de paiement de la charge \"${widget.title}\" à $name (Apt. $apt) ?",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: _DC.textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+
+              // Message preview
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _DC.bg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _DC.border),
+                ),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(Icons.message_outlined, size: 16, color: _DC.textMuted),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(
+                    hasPaid
+                        ? "Bonjour $name, votre paiement de ${_impayes.isNotEmpty ? _payes.firstWhere((h) => h['nom'] == name, orElse: () => {'montant': 1000})['montant'] : 1000} MAD pour la charge ${widget.title} (${widget.date}) a bien été enregistré. Merci !"
+                        : "Bonjour $name, nous vous rappelons que votre charge ${widget.title} (${widget.date}) d'un montant de 1000 MAD est toujours en attente. Merci de régulariser votre situation.",
+                    style: const TextStyle(fontSize: 12, color: _DC.textSecondary, height: 1.5),
+                  )),
+                ]),
+              ),
+              const SizedBox(height: 24),
+
+              // Buttons
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: _DC.border),
+                      foregroundColor: _DC.textSecondary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text("Annuler", style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _sendAlert(name, hasPaid);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: hasPaid ? _DC.green : _DC.amber,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(
+                      hasPaid ? "Confirmer" : "Envoyer",
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  BUILD
+  // ══════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
+      backgroundColor: _DC.bg,
       body: Stack(
         children: [
-          _buildHeaderBackground(),
-          SafeArea(child: _buildMainContent(context)),
+          _buildHeaderBg(),
+          SafeArea(
+            child: Column(
+              children: [
+                _buildTopBar(context),
+                const SizedBox(height: 8),
+                Expanded(child: _buildBody()),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // ================= HEADER =================
-
-  Widget _buildHeaderBackground() {
+  // ── HEADER BACKGROUND ─────────────────────────────────────────
+  Widget _buildHeaderBg() {
     return SizedBox(
-      height: 260,
+      height: 280,
       width: double.infinity,
       child: Stack(
         children: [
@@ -131,663 +322,679 @@ _animationController.forward();
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  widget.color.withOpacity(0.5),
-                  widget.color.withOpacity(0.9),
-                ],
+                colors: [const Color(0xFF004E7A).withOpacity(0.55), const Color(0xFF004E7A).withOpacity(0.95)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
+          // Decorative circles
+          Positioned(top: -30, right: -30,
+              child: Container(width: 140, height: 140,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)))),
+          Positioned(bottom: 20, left: -20,
+              child: Container(width: 90, height: 90,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.05)))),
         ],
       ),
     );
   }
 
-  // ================= MAIN =================
-
-  Widget _buildMainContent(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        _buildTopBar(context),
-        const SizedBox(height: 20),
-        Expanded(child: _buildCardContent()),
-      ],
-    );
-  }
-
+  // ── TOP BAR ───────────────────────────────────────────────────
   Widget _buildTopBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Spacer(),
-          const Text(
-            "Détail de la charge",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          // Bouton retour — simple, sans bulle
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
             ),
           ),
-          const Spacer(),
-          const SizedBox(width: 45),
+          const Expanded(
+            child: Text("Détail de la charge",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+          ),
+          // Espace symétrique pour centrer le titre
+          const SizedBox(width: 36),
         ],
       ),
     );
   }
 
-  // ================= CARD =================
+  // ── BODY ─────────────────────────────────────────────────────
+  Widget _buildBody() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          // ── FLOATING HERO CARD ───────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildHeroCard(),
+          ),
+          const SizedBox(height: 16),
 
-  Widget _buildCardContent() {
+          // ── DESCRIPTION ──────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildDescriptionCard(),
+          ),
+          const SizedBox(height: 16),
+
+          // ── PROGRESS BAR CARD ────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildProgressCard(),
+          ),
+          const SizedBox(height: 16),
+
+          // ── SECTIONS EXPANDABLES ─────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildExpandableSection(
+              title: "Payé",
+              subtitle: "${_payes.length} habitant${_payes.length > 1 ? 's' : ''}",
+              icon: Icons.check_circle_rounded,
+              color: _DC.green,
+              bg: _DC.greenBg,
+              isExpanded: _isPaidExpanded,
+              habitants: _payes,
+              hasPaid: true,
+              onTap: () => setState(() {
+                _isPaidExpanded = !_isPaidExpanded;
+                if (_isPaidExpanded) _isUnpaidExpanded = false;
+              }),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildExpandableSection(
+              title: "Non payé",
+              subtitle: "${_impayes.length} habitant${_impayes.length > 1 ? 's' : ''}",
+              icon: Icons.cancel_rounded,
+              color: _DC.red,
+              bg: _DC.redBg,
+              isExpanded: _isUnpaidExpanded,
+              habitants: _impayes,
+              hasPaid: false,
+              onTap: () => setState(() {
+                _isUnpaidExpanded = !_isUnpaidExpanded;
+                if (_isUnpaidExpanded) _isPaidExpanded = false;
+              }),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  // ── HERO CARD ─────────────────────────────────────────────────
+  Widget _buildHeroCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        color: _DC.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+          BoxShadow(color: widget.color.withOpacity(0.12), blurRadius: 24, offset: const Offset(0, 8)),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Icon container
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(
+                  color: widget.color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: widget.color.withOpacity(0.2)),
+                ),
+                child: Icon(widget.icon, color: widget.color, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.title,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _DC.textPrimary)),
+                    const SizedBox(height: 2),
+                    Row(children: [
+                      const Icon(Icons.calendar_today_outlined, size: 13, color: _DC.textMuted),
+                      const SizedBox(width: 4),
+                      Text(widget.date, style: const TextStyle(fontSize: 13, color: _DC.textSecondary)),
+                    ]),
+                  ],
+                ),
+              ),
+              // Status badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _statusBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _statusColor.withOpacity(0.25)),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Container(width: 7, height: 7,
+                      decoration: BoxDecoration(color: _statusColor, shape: BoxShape.circle)),
+                  const SizedBox(width: 5),
+                  Text(_status, style: TextStyle(
+                      color: _statusColor, fontWeight: FontWeight.w700, fontSize: 12)),
+                ]),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+          const Divider(color: _DC.border, height: 1),
+          const SizedBox(height: 20),
+
+          // Donut + center info
+          AnimatedBuilder(
+            animation: _progressAnim,
+            builder: (_, __) => _buildDonut(_progressAnim.value),
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            _buildHeaderInfo(),
-            const SizedBox(height: 26),
-            _buildAnimatedDonutChart(),
-            const SizedBox(height: 5),
-            const SizedBox(height: 5),
-            _buildDescription(),
-            const SizedBox(height: 16),
-            _buildMiniInfo(),
-            const SizedBox(height: 22),
-            _buildExpandableSections(),
-          ],
-        ),
-      ),
     );
   }
 
-  // ================= HEADER INFO =================
-
-  Widget _buildHeaderInfo() {
-    return Row(
-      children: [
-        Icon(widget.icon, color: widget.color, size: 36),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text(widget.date, style: const TextStyle(color: Colors.grey)),
-          ],
-        ),
-        const Spacer(),
-Container(
-  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-  decoration: BoxDecoration(
-    color: statusColor.withOpacity(0.15),
-    borderRadius: BorderRadius.circular(20),
-  ),
-  child: Text(
-    status,
-    style: TextStyle(
-      color: statusColor,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-),
-      ],
-    );
-  }
-
-  // ================= DONUT ANIMÉ =================
-
-  Widget _buildAnimatedDonutChart() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: progress),
-      duration: const Duration(seconds: 1),
-      curve: Curves.easeInOutCubicEmphasized,
-      builder: (context, value, child) {
-        return SizedBox(
-          height: 240,
-          width: 240,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.color.withOpacity(0.25),
-                      blurRadius: 25,
-                      spreadRadius: 4,
+  // ── DONUT CHART ───────────────────────────────────────────────
+  Widget _buildDonut(double value) {
+    return SizedBox(
+      height: 200,
+      child: Row(
+        children: [
+          // Donut
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                width: 170, height: 170,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      painter: _CleanDonutPainter(
+                        progress: value,
+                        paidColor: widget.color,
+                        unpaidColor: _DC.red,
+                        bgColor: _DC.border,
+                      ),
+                      size: const Size(170, 170),
+                    ),
+                    // Center text
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: value * 100),
+                          duration: const Duration(milliseconds: 1400),
+                          curve: Curves.easeInOutCubicEmphasized,
+                          builder: (_, v, __) => Text("${v.round()}%",
+                              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900,
+                                  color: widget.color)),
+                        ),
+                        Text("collecté",
+                            style: const TextStyle(fontSize: 12, color: _DC.textMuted, fontWeight: FontWeight.w500)),
+                      ],
                     ),
                   ],
                 ),
               ),
-        Transform.rotate(
-  angle: (1 - value) * 0.6, // rotation fluide premium
-  child: SizedBox(
-    width: 610,
-    height: 610,
-    child: CustomPaint(
-      painter: AnimatedDonutPainter(
-        paidPercent: value,
-        paidColor: widget.color,
-        unpaidColor: Colors.redAccent,
-        animation: _progressAnimation,
-      ),
-    ),
-  ),
-),
-              _buildAnimatedDonutCenter(value),
-            ],
+            ),
           ),
-        );
-      },
-    );
-  }
 
-  Widget _buildAnimatedDonutCenter(double animatedProgress) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: animatedProgress * 100),
-            duration: const Duration(seconds: 1),
-            builder: (context, value, child) {
-              return Text(
-                "${value.toStringAsFixed(0)}%",
-                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800),
-              );
-            },
-          ),
-          const Text("Payé", style: TextStyle(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 6),
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: widget.total),
-            duration: const Duration(seconds: 1),
-            builder: (context, value, child) {
-              return Text(
-                "${value.toInt()} MAD",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              );
-            },
-          ),
-          const SizedBox(height: 1),
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          // Legend
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _miniDot(widget.color, "${widget.paid.toInt()} MAD"),
-              const SizedBox(width: 12),
-              _miniDot(Colors.redAccent, "${(widget.total - widget.paid).toInt()} MAD"),
+              _legendItem(widget.color, "Payé", "${widget.paid.toInt()} MAD"),
+              const SizedBox(height: 16),
+              _legendItem(_DC.red, "Impayé", "${(widget.total - widget.paid).toInt()} MAD"),
+              const SizedBox(height: 16),
+              _legendItem(_DC.textMuted, "Total", "${widget.total.toInt()} MAD"),
             ],
           ),
+          const SizedBox(width: 8),
         ],
       ),
     );
   }
 
-  Widget _miniDot(Color color, String value) {
+  Widget _legendItem(Color color, String label, String value) {
     return Row(
       children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          value,
-          style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
-        ),
+        Container(width: 10, height: 10,
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+        const SizedBox(width: 8),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: _DC.textMuted)),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _DC.textPrimary)),
+        ]),
       ],
     );
   }
 
- 
-
-
-
-  // ================= DESCRIPTION =================
-
-Widget _buildDescription() {
-  return _sectionCard(
-    icon: Icons.info,
-    title: "Description",
-    content: description,
-  );
-}
-
-  Widget _buildMiniInfo() {
-    return Row(
-      children: [
-        Expanded(
-          child: _infoMiniCard(
-            icon: widget.icon,
-            title: "Type",
-            value: widget.title,
-            bg: widget.color.withOpacity(0.1),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _infoMiniCard(
-            icon: Icons.calendar_month,
-            title: "Période",
-            value: widget.date,
-            bg: Colors.red.withOpacity(0.1),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ================= COMPONENTS =================
-
-  Widget _sectionCard({required IconData icon, required String title, required String content}) {
+  // ── DESCRIPTION CARD ──────────────────────────────────────────
+  Widget _buildDescriptionCard() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FD),
-        borderRadius: BorderRadius.circular(16),
+        color: _DC.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _DC.border),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: Colors.blue, size: 20),
-              const SizedBox(width: 6),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: widget.color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.info_outline_rounded, size: 18, color: widget.color),
           ),
-          const SizedBox(height: 8),
-          Text(content, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Description", style: TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700, color: _DC.textPrimary)),
+                const SizedBox(height: 4),
+                Text(_description, style: const TextStyle(
+                    fontSize: 13, color: _DC.textSecondary, height: 1.6)),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _infoMiniCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color bg,
-  }) {
+  // ── PROGRESS CARD ─────────────────────────────────────────────
+  Widget _buildProgressCard() {
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _DC.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _DC.border),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: Colors.grey[700]),
-          const SizedBox(height: 6),
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Row(children: [
+            const Text("Progression du recouvrement",
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _DC.textPrimary)),
+            const Spacer(),
+            AnimatedBuilder(
+              animation: _progressAnim,
+              builder: (_, __) => Text(
+                "${(_progressAnim.value * 100).round()}%",
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: widget.color),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          AnimatedBuilder(
+            animation: _progressAnim,
+            builder: (_, __) => Stack(
+              children: [
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: _DC.bg, borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: _progressAnim.value,
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [widget.color.withOpacity(0.7), widget.color]),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: widget.color.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(children: [
+            Text("${widget.paid.toInt()} MAD collectés",
+                style: const TextStyle(fontSize: 12, color: _DC.textSecondary)),
+            const Spacer(),
+            Text("${widget.total.toInt()} MAD total",
+                style: const TextStyle(fontSize: 12, color: _DC.textMuted)),
+          ]),
         ],
       ),
     );
   }
 
-  // ================= SECTIONS EXPANDABLES =================
-
-  Widget _buildExpandableSections() {
-    return Column(
-      children: [
-        _buildExpandableSection(
-          title: "Habitants ayant payé",
-          icon: Icons.check_circle,
-          color: Colors.green,
-          isExpanded: _isPaidExpanded,
-          habitants: _payes,
-          totalMontant: _payes.fold(0, (sum, item) => sum + item['montant']),
-          onTap: () {
-            setState(() {
-              _isPaidExpanded = !_isPaidExpanded;
-              if (_isPaidExpanded) _isUnpaidExpanded = false;
-            });
-          },
-        ),
-        const SizedBox(height: 14),
-        _buildExpandableSection(
-          title: "Habitants n'ayant pas payé",
-          icon: Icons.cancel,
-          color: Colors.redAccent,
-          isExpanded: _isUnpaidExpanded,
-          habitants: _impayes,
-          totalMontant: _impayes.fold(0, (sum, item) => sum + item['montant']),
-          onTap: () {
-            setState(() {
-              _isUnpaidExpanded = !_isUnpaidExpanded;
-              if (_isUnpaidExpanded) _isPaidExpanded = false;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
+  // ── EXPANDABLE SECTION ────────────────────────────────────────
   Widget _buildExpandableSection({
     required String title,
+    required String subtitle,
     required IconData icon,
     required Color color,
+    required Color bg,
     required bool isExpanded,
     required List<Map<String, dynamic>> habitants,
-    required double totalMontant,
+    required bool hasPaid,
     required VoidCallback onTap,
   }) {
+    final total = habitants.fold<int>(0, (s, h) => s + (h['montant'] as int));
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: _DC.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: isExpanded ? color.withOpacity(0.3) : _DC.border,
+            width: isExpanded ? 1.5 : 1),
+        boxShadow: [
+          BoxShadow(color: isExpanded ? color.withOpacity(0.08) : Colors.black.withOpacity(0.03),
+              blurRadius: isExpanded ? 16 : 8, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         children: [
+          // Header row
           Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(20),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(icon, color: color, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
+                        color: isExpanded ? color.withOpacity(0.12) : bg,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        "${habitants.length}",
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                      child: Icon(icon, size: 18, color: color),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
+                            color: isExpanded ? color : _DC.textPrimary)),
+                        Text(subtitle, style: const TextStyle(fontSize: 12, color: _DC.textMuted)),
+                      ]),
+                    ),
+                    // Total badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: color.withOpacity(0.2)),
                       ),
+                      child: Text("$total MAD",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
                     ),
                     const SizedBox(width: 8),
                     AnimatedRotation(
-                      duration: const Duration(milliseconds: 300),
                       turns: isExpanded ? 0.5 : 0,
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: color,
-                        size: 24,
-                      ),
+                      duration: const Duration(milliseconds: 250),
+                      child: Icon(Icons.keyboard_arrow_down_rounded, color: _DC.textMuted, size: 22),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: _buildHabitantList(habitants, color, totalMontant),
-            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 300),
-            firstCurve: Curves.easeOut,
-            secondCurve: Curves.easeIn,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildHabitantList(List<Map<String, dynamic>> habitants, Color color, double totalMontant) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        children: [
-          ...habitants.map(
-            (habitant) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: _buildHabitantItem(habitant, color),
-            ),
-          ),
-          const Divider(height: 20, thickness: 1),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Total",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: color.withOpacity(0.3)),
-                ),
-                child: Text(
-                  "${totalMontant.toInt()} MAD",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+          // Expanded content
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 280),
+            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            firstChild: const SizedBox.shrink(),
+            secondChild: Column(
+              children: [
+                Divider(height: 1, color: color.withOpacity(0.15), indent: 16, endIndent: 16),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Column(
+                    children: [
+                      ...habitants.map((h) => _buildHabitantRow(h, hasPaid, color)),
+                      const SizedBox(height: 6),
+                      // Total row
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(children: [
+                          Text("Total ${hasPaid ? 'collecté' : 'impayé'}",
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _DC.textPrimary)),
+                          const Spacer(),
+                          Text("$total MAD",
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color)),
+                        ]),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHabitantItem(Map<String, dynamic> habitant, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 45,
-          height: 45,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                color.withOpacity(0.3),
-                color.withOpacity(0.1),
+  // ── HABITANT ROW ──────────────────────────────────────────────
+  Widget _buildHabitantRow(Map<String, dynamic> h, bool hasPaid, Color sectionColor) {
+    final String name    = h['nom'];
+    final String initials = h['initials'];
+    final String apt     = h['apt'];
+    final int montant    = h['montant'];
+    final String date    = h['date'];
+    final AlertStatus status = _alertStatus[name] ?? AlertStatus.none;
+
+    final bool isSent    = status == AlertStatus.sent;
+    final bool isSending = status == AlertStatus.sending;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _DC.bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _DC.border),
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [sectionColor.withOpacity(0.2), sectionColor.withOpacity(0.1)],
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: sectionColor.withOpacity(0.25)),
+            ),
+            child: Center(child: Text(initials,
+                style: TextStyle(color: sectionColor, fontWeight: FontWeight.w800, fontSize: 14))),
+          ),
+          const SizedBox(width: 10),
+
+          // Name + apt + date
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: _DC.textPrimary)),
+                const SizedBox(height: 2),
+                Row(children: [
+                  Icon(Icons.home_outlined, size: 12, color: _DC.textMuted),
+                  const SizedBox(width: 3),
+                  Text("Apt. $apt", style: const TextStyle(fontSize: 11, color: _DC.textMuted)),
+                  const SizedBox(width: 8),
+                  Icon(hasPaid ? Icons.calendar_today_outlined : Icons.warning_amber_rounded,
+                      size: 11, color: hasPaid ? _DC.textMuted : _DC.amber),
+                  const SizedBox(width: 3),
+                  Text(date, style: TextStyle(fontSize: 11,
+                      color: hasPaid ? _DC.textMuted : _DC.amber,
+                      fontWeight: hasPaid ? FontWeight.normal : FontWeight.w600)),
+                ]),
               ],
             ),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color.withOpacity(0.3)),
           ),
-          child: Center(
-            child: Text(
-              habitant['avatar'],
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+
+          // Amount
+          Text("$montant MAD",
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: sectionColor)),
+          const SizedBox(width: 10),
+
+          // ✅ ALERT BUTTON
+          GestureDetector(
+            onTap: isSent || isSending ? null : () => _showAlertDialog(name, hasPaid, apt),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: isSent
+                    ? _DC.green.withOpacity(0.12)
+                    : (hasPaid ? _DC.green.withOpacity(0.08) : _DC.amber.withOpacity(0.1)),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSent
+                      ? _DC.green.withOpacity(0.3)
+                      : (hasPaid ? _DC.green.withOpacity(0.2) : _DC.amber.withOpacity(0.3)),
+                ),
+              ),
+              child: Center(
+                child: isSending
+                    ? SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(
+                                hasPaid ? _DC.green : _DC.amber)))
+                    : Icon(
+                        isSent
+                            ? Icons.check_rounded
+                            : (hasPaid
+                                ? Icons.mark_email_read_outlined
+                                : Icons.notifications_none_rounded),
+                        size: 18,
+                        color: isSent
+                            ? _DC.green
+                            : (hasPaid ? _DC.green : _DC.amber),
+                      ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                habitant['nom'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                habitant['date'],
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Text(
-            "${habitant['montant']} MAD",
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-// ================= DONUT PAINTER AMÉLIORÉ =================
-
-class AnimatedDonutPainter extends CustomPainter {
-  final double paidPercent;
+// ══════════════════════════════════════════════════════════════════
+//  CLEAN DONUT PAINTER
+// ══════════════════════════════════════════════════════════════════
+class _CleanDonutPainter extends CustomPainter {
+  final double progress;
   final Color paidColor;
   final Color unpaidColor;
-  final Animation<double> animation;
+  final Color bgColor;
 
-  AnimatedDonutPainter({
-    required this.paidPercent,
+  _CleanDonutPainter({
+    required this.progress,
     required this.paidColor,
     required this.unpaidColor,
-    required this.animation,
-  }) : super(repaint: animation);
+    required this.bgColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = size.width / 2 - 16;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - 14;
+    const strokeW = 18.0;
+    const startAngle = -pi / 2;
 
-    final paint = Paint()
+    final basePaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 16
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = strokeW
+      ..color = bgColor;
 
-    final startAngle = -pi / 2;
+    // Background track
+    canvas.drawCircle(center, radius, basePaint);
 
-    // Background circle (gris clair)
-    paint.color = Colors.grey.shade200;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      0,
-      2 * pi,
-      false,
-      paint,
-    );
+    // Paid arc
+    if (progress > 0) {
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeW
+        ..strokeCap = StrokeCap.round
+        ..shader = SweepGradient(
+          startAngle: startAngle,
+          endAngle: startAngle + 2 * pi * progress,
+          colors: [paidColor.withOpacity(0.7), paidColor],
+          stops: const [0.0, 1.0],
+        ).createShader(Rect.fromCircle(center: center, radius: radius));
 
-    // Paid arc avec gradient
-    if (paidPercent > 0) {
-      paint.shader = SweepGradient(
-        startAngle: startAngle,
-        endAngle: startAngle + 2 * pi * paidPercent,
-        colors: [
-          paidColor.withOpacity(0.6),
-          paidColor,
-          paidColor.withOpacity(0.8),
-        ],
-        stops: const [0.0, 0.6, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-      
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
-        2 * pi * paidPercent,
+        2 * pi * progress,
         false,
         paint,
       );
     }
 
-    // Unpaid arc avec gradient
-    if (paidPercent < 1) {
-      paint.shader = SweepGradient(
-        startAngle: startAngle + 2 * pi * paidPercent,
-        endAngle: 2 * pi,
-        colors: [
-          unpaidColor.withOpacity(0.4),
-          unpaidColor,
-          unpaidColor.withOpacity(0.6),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-      
+    // Unpaid arc
+    if (progress < 1) {
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeW
+        ..strokeCap = StrokeCap.round
+        ..color = unpaidColor.withOpacity(0.25);
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
-        startAngle + 2 * pi * paidPercent,
-        2 * pi * (1 - paidPercent),
+        startAngle + 2 * pi * progress + 0.03,
+        2 * pi * (1 - progress) - 0.03,
         false,
         paint,
-      );
-    }
-
-    // Ajouter des points de lumière pour l'effet 3D
-    final lightPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 16
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-
-    if (paidPercent > 0) {
-      lightPaint.color = paidColor.withOpacity(0.3);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        2 * pi * paidPercent,
-        false,
-        lightPaint,
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant _CleanDonutPainter old) =>
+      old.progress != progress;
 }

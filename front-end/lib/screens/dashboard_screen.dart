@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'NotificationsScreen.dart';
 import 'habitants_screen.dart';
 import 'charges.dart';
+import 'assembly_dashboard_screen.dart';
+import 'paramètres.dart';
+import 'package:provider/provider.dart';
+import 'app_state.dart';
 
 const Color primaryBlue = Color(0xFF004E7A);
 
@@ -30,7 +34,7 @@ onMenuSelected: (menu) {
     selectedMenu = menu;
   });
 
-  Navigator.of(context).pop(); // fermer le drawer
+  Navigator.of(context).pop(); // fermer drawer
 
   if (menu == "Habitants") {
     Navigator.push(
@@ -39,11 +43,28 @@ onMenuSelected: (menu) {
         builder: (_) => const HabitantsScreen(),
       ),
     );
-  } else if (menu == "Charges") {
+  } 
+  else if (menu == "Charges") {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => const ChargesScreen(),
+      ),
+    );
+  } 
+  else if (menu == "Assemblée Générale") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AssemblyDashboardScreen(),
+      ),
+    );
+  }
+    else if (menu == "Paramètres") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
       ),
     );
   }
@@ -180,108 +201,67 @@ Positioned(
 
             const SizedBox(height: 70),
 // =====================================================
-// PROCHAINE ASSEMBLÉE GÉNÉRALE
+// PROCHAINE ASSEMBLÉE GÉNÉRALE (CARTE DU PREMIER CODE)
 // =====================================================
 Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 20),
+  padding: const EdgeInsets.symmetric(horizontal: 19),
   child: Container(
     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
         colors: [Color(0xFF004E7A), Color(0xFF006DAA)],
-        begin: Alignment.topLeft,
+        begin: Alignment.topLeft, 
         end: Alignment.bottomRight,
       ),
       borderRadius: BorderRadius.circular(22),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.15),
-          blurRadius: 20,
-          offset: const Offset(0, 10),
-        ),
-      ],
+      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 10))],
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min, // 🔥 évite hauteur inutile
+      mainAxisSize: MainAxisSize.min,
       children: [
-
-        // TITRE
-        const Row(
-          children: [
-            Icon(Icons.event_available, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              "Prochaine Assemblée Générale",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-
+        const Row(children: [
+          Icon(Icons.event_available, color: Colors.white),
+          SizedBox(width: 8),
+          Text("Prochaine Assemblée Générale",
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        ]),
         const SizedBox(height: 12),
-
-        // DATE + BOUTON
-        Row(
-          children: [
-            const Icon(Icons.calendar_month,
-                color: Colors.white70, size: 18),
-            const SizedBox(width: 6),
-
-            const Expanded(
-              child: Text(
-                "25 Mars 2026 - 18:00",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+        Row(children: [
+          const Icon(Icons.calendar_month, color: Colors.white70, size: 18),
+          const SizedBox(width: 6),
+          const Expanded(child: Text("25 Mars 2026 - 18:00",
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF004E7A),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: primaryBlue,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
-                minimumSize: Size.zero, // 🔥 réduit taille interne
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            onPressed: () {
+              // Navigation vers l'écran d'assemblée avec affichage direct du PDF
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AssemblyDashboardScreen(),
                 ),
-              ),
-              onPressed: () {
-                debugPrint("Voir détails Assemblée");
-              },
-              child: const Text(
-                "Voir détails",
-                style: TextStyle(fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-
+              ).then((_) {
+                // Optionnel: après retour, on pourrait appeler une méthode pour générer le PDF
+                // Mais ici on veut juste que l'utilisateur aille sur l'écran
+              });
+            },
+            child: const Text("Voir détails", style: TextStyle(fontSize: 12)),
+          ),
+        ]),
         const SizedBox(height: 6),
-
-        // LIEU
-        const Row(
-          children: [
-            Icon(Icons.location_on_outlined,
-                color: Colors.white70, size: 18),
-            SizedBox(width: 6),
-            Text(
-              "Salle polyvalente - Résidence",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
+        const Row(children: [
+          Icon(Icons.location_on_outlined, color: Colors.white70, size: 18),
+          SizedBox(width: 6),
+          Expanded(child: Text("Salle polyvalente - Résidence", style: TextStyle(color: Colors.white, fontSize: 13))),
+        ]),
       ],
     ),
   ),
@@ -393,22 +373,45 @@ const SizedBox(height: 24),
     );
   },
 ),
-
-          const ActionCard(
-            icon: Icons.insert_drive_file_outlined,
-            label: "Générer des rapports",
-            color: Colors.green,
-          ),
-          const ActionCard(
-            icon: Icons.event_note_outlined,
-            label: "Planifier une assemblée",
-            color: Colors.deepPurple,
-          ),
-          const ActionCard(
-            icon: Icons.campaign_outlined,
-            label: "Diffusion",
-            color: Colors.orange,
-          ),
+  ActionCard(
+  icon: Icons.event_note_outlined,
+  label: "Planifier une assemblée",
+  color: Colors.deepPurple,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AssemblyDashboardScreen(),
+      ),
+    );
+  },
+),
+  ActionCard(
+  icon: Icons.insert_drive_file_outlined,
+  label: "Voir charges",
+  color: Colors.green,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ChargesScreen(),
+      ),
+    );
+  },
+),
+  ActionCard(
+  icon: Icons.insert_drive_file_outlined,
+  label: "Paramètres",
+  color: Colors.orange,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+  },
+),
         ],
       ),
     ],
@@ -777,9 +780,8 @@ class AppDrawer extends StatelessWidget {
       {"icon": Icons.dashboard, "title": "Dashboard"},
       {"icon": Icons.task, "title": "Habitants"},
       {"icon": Icons.calendar_month, "title": "Charges"},
-      {"icon": Icons.message, "title": "Messages"},
-      {"icon": Icons.settings, "title": "Settings"},
-      {"icon": Icons.person, "title": "Profile"},
+      {"icon": Icons.message, "title": "Assemblée Générale"},
+      {"icon": Icons.settings, "title": "Paramètres"},
     ];
 
     return Drawer(
@@ -863,4 +865,4 @@ class AppDrawer extends StatelessWidget {
       ),
     );
   }
-} 
+}
