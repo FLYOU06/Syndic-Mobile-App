@@ -169,7 +169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _nomSyndicCtrl     = TextEditingController(text: "M. Ahmed Benali");
   final _emailSyndicCtrl   = TextEditingController(text: "ahmed.benali@syndicontrol.ma");
   final _telSyndicCtrl     = TextEditingController(text: "+212 6 12 34 56 78");
-  final _adresseSyndicCtrl = TextEditingController(text: "Casablanca, Maroc");
+
 
   // ── Champs Copropriété ───────────────────────────────────────────
   final _nomResCtrl   = TextEditingController(text: "Résidence Al Amal");
@@ -228,8 +228,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _editableField(Icons.email_outlined,               _t("email_syndic"),   _emailSyndicCtrl,   _P.blue),
                   _div(),
                   _editableField(Icons.phone_outlined,               _t("tel_syndic"),     _telSyndicCtrl,     _P.success),
-                  _div(),
-                  _editableField(Icons.location_on_outlined,         _t("adresse_syndic"), _adresseSyndicCtrl, _P.warning),
                   _div(),
                   _nav(Icons.lock_outline_rounded,  _t("change_pwd"),  _t("change_pwd_sub"), _P.blue, _showPasswordSheet),
                   _div(),
