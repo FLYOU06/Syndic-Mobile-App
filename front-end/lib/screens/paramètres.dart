@@ -1,10 +1,3 @@
-// ════════════════════════════════════════════════════════════════════
-//  settings_screen.dart — SyndiControl
-//  Sections :
-//  1️⃣  Profil du syndic
-//  2️⃣  Informations de la copropriété
-//  3️⃣  Langue et apparence
-// ════════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -921,6 +914,35 @@ class AppDrawer extends StatelessWidget {
                 ),
               );
             }),
+            const Spacer(),
+
+// Bouton déconnexion
+GestureDetector(
+  onTap: () {
+    // ta logique de déconnexion ici
+    Navigator.of(context).pop();
+  },
+  child: Container(
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+    child: const Row(
+      children: [
+        Icon(Icons.logout, color: Color(0xFFC2E9FF)),
+        SizedBox(width: 12),
+        Text(
+          "Déconnexion",
+          style: TextStyle(
+            color: Color(0xFFC2E9FF),
+            fontSize: 16,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
           ],
         ),
       ),
