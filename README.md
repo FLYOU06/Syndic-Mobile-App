@@ -38,9 +38,9 @@ Le **tableau de bord** affiche :
 ### ⚡ Actions rapides :
 
 - Gérer les habitants
-- Générer des rapports
+- Voir Charges
 - Planifier une assemblée
-- Diffusion
+- Parammètres
 
 Le dashboard centralise les **informations importantes de la résidence** pour une vision rapide de la situation.
 
@@ -115,22 +115,45 @@ Cela permet d’avoir une **vision précise du paiement des charges par habitant
 
 # 🏛 5️⃣ Gestion de l’Assemblée Générale
 
-L’application permet également de gérer la **préparation des assemblées générales** de la copropriété.
+Cette section permet de gérer tout le cycle de vie d’une assemblée générale, avant, pendant et après la réunion, à travers une interface moderne sous forme de timeline interactive.
 
-### Fonctionnalités
+## Informations principales
 
-- Création d’une **assemblée générale**
-- Définition des informations principales :
-  - 📅 Date
-  - ⏰ Heure
-  - 📍 Lieu
-- Ajout des **points de l’ordre du jour**
-- Organisation des sujets à discuter
-- Interface simple pour préparer la réunion
+### Chaque assemblée affiche :
 
-Cette fonctionnalité facilite la **planification des réunions entre le syndic et les habitants**.
+📅 Date et heure
+📍 Lieu de la réunion
+📌 Carte récapitulative de la prochaine assemblée générale
+🔘 Accès rapide à la convocation
+🧭 Workflow de l’Assemblée (Interface par étapes)
 
----
+L’application guide l’utilisateur à travers un processus structuré :
+
+🔹### AVANT L’ASSEMBLÉE
+
+1️⃣ Fixation de la date et du lieu
+
+Définir les informations principales de la réunion
+
+2️⃣ Préparation de l’ordre du jour
+
+Ajouter les points à discuter
+Organiser les résolutions
+
+3️⃣ Envoi des convocations
+
+Envoyer les invitations aux copropriétaires
+🔸 ### APRÈS L’ASSEMBLÉE
+
+4️⃣ Enregistrement des présences
+
+Marquer les présents / absents
+Calcul automatique du quorum
+
+5️⃣ Rédaction du procès-verbal (PV)
+
+Résumé des discussions
+Résultats des votes
 
 # 🛠 Technologies Utilisées
 
