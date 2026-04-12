@@ -4,7 +4,7 @@ const { login, register, getMe, changePassword } = require('../controllers/authC
 const { authenticate, authorize } = require('../middleware/auth');
 
 router.post('/login',           login);
-router.post('/register',        authenticate, authorize('admin', 'syndic'), register);
+router.post('/register',        authenticate, authorize('syndic'), register);
 router.get('/me',               authenticate, getMe);
 router.put('/change-password',  authenticate, changePassword);
 

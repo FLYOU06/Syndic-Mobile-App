@@ -9,7 +9,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 // ── Routes ──────────────────────────────────────────────────────────
 const authRoutes          = require('./routes/auth');
 const immeublesRoutes     = require('./routes/immeubles');
-const proprietairesRoutes = require('./routes/proprietaires');
+const habitantsRoutes     = require('./routes/habitants');
 const chargesRoutes       = require('./routes/charges');
 const paiementsRoutes     = require('./routes/paiements');
 const assembleesRoutes    = require('./routes/assemblees');
@@ -43,7 +43,7 @@ app.get('/health', (req, res) => {
 const API = '/api';
 app.use(`${API}/auth`,          authRoutes);
 app.use(`${API}/immeubles`,     immeublesRoutes);
-app.use(`${API}/proprietaires`, proprietairesRoutes);
+app.use(`${API}/habitants`,     habitantsRoutes);
 app.use(`${API}/charges`,       chargesRoutes);
 app.use(`${API}/paiements`,     paiementsRoutes);
 app.use(`${API}/assemblees`,    assembleesRoutes);

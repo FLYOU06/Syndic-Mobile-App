@@ -1,16 +1,13 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const { authenticate, authorize } = require('../middleware/auth');
-const {
-  getAllCharges, getChargeById, createCharge,
-  updateCharge, deleteCharge, getImpayesDashboard,
-} = require('../controllers/chargesController');
+const { getAllCharges, getChargeById, createCharge, updateCharge, deleteCharge, getImpayesDashboard } = require('../controllers/chargesController');
 
-router.get('/impayes/dashboard', authenticate, authorize('syndic', 'admin'), getImpayesDashboard);
+router.get('/impayes/dashboard', authenticate, authorize('syndic'), getImpayesDashboard);
 router.get('/',    authenticate, getAllCharges);
 router.get('/:id', authenticate, getChargeById);
-router.post('/',   authenticate, authorize('syndic', 'admin'), createCharge);
-router.put('/:id', authenticate, authorize('syndic', 'admin'), updateCharge);
-router.delete('/:id', authenticate, authorize('syndic', 'admin'), deleteCharge);
+router.post('/',   authenticate, authorize('syndic'), createCharge);
+router.put('/:id', authenticate, authorize('syndic'), updateCharge);
+router.delete('/:id', authenticate, authorize('syndic'), deleteCharge);
 
 module.exports = router;
