@@ -1,7 +1,10 @@
 const express = require('express');
 const router  = express.Router();
 const { authenticate, authorize } = require('../middleware/auth');
-const { getAllCharges, getChargeById, createCharge, updateCharge, deleteCharge, getImpayesDashboard } = require('../controllers/chargesController');
+const {
+  getAllCharges, getChargeById, createCharge,
+  updateCharge, deleteCharge, getImpayesDashboard,
+} = require('../controllers/chargesController');
 
 router.get('/impayes/dashboard', authenticate, authorize('syndic'), getImpayesDashboard);
 router.get('/',    authenticate, getAllCharges);

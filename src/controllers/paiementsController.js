@@ -24,10 +24,10 @@ const getAllPaiements = async (req, res, next) => {
 
     const result = await pool.request().query(`
       SELECT pay.*,
-             c.nom  AS chargeNom, c.montant AS chargeMontant,
-             h.nom  AS habitantNom, h.prenom AS habitantPrenom, h.type AS habitantType
+             c.nom   AS chargeNom, c.montant AS chargeMontant,
+             h.nom   AS habitantNom, h.prenom AS habitantPrenom, h.type AS habitantType
       FROM Paiements pay
-      INNER JOIN Charges  c ON pay.chargeId  = c.id
+      INNER JOIN Charges  c ON pay.chargeId   = c.id
       LEFT JOIN  Habitants h ON pay.habitantId = h.id
       ${where}
       ORDER BY pay.datePaiement DESC
@@ -47,6 +47,7 @@ const createPaiement = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'chargeId, habitantId and montant are required.' });
 
     const pool = await getPool();
+
     const result = await pool.request()
       .input('chargeId',    sql.Int,           chargeId)
       .input('habitantId',  sql.Int,           habitantId)
@@ -54,9 +55,9 @@ const createPaiement = async (req, res, next) => {
       .input('modePaiement',sql.NVarChar,      modePaiement || null)
       .input('reference',   sql.NVarChar,      reference    || null)
       .query(`
-        INSERT INTO Paiements (chargeId,habitantId,montant,modePaiement,reference)
+        INSERT INTO Paiements (chargeId, habitantId, montant, modePaiement, reference)
         OUTPUT INSERTED.*
-        VALUES (@chargeId,@habitantId,@montant,@modePaiement,@reference)
+        VALUES (@chargeId, @habitantId, @montant, @modePaiement, @reference)
       `);
 
     // Mark charge as paid
@@ -64,15 +65,16 @@ const createPaiement = async (req, res, next) => {
       .input('id', sql.Int, chargeId)
       .query(`UPDATE Charges SET statut='paye', updatedAt=GETDATE() WHERE id=@id`);
 
-    // Notify the habitant
-    const userRes = await pool.request()
+    // Notify the habitant who paid
+    const habitantRes = await pool.request()
       .input('id', sql.Int, habitantId)
       .query('SELECT userId FROM Habitants WHERE id = @id');
-    if (userRes.recordset[0]) {
+
+    if (habitantRes.recordset[0]) {
       await notificationService.create(
-        userRes.recordset[0].userId,
+        habitantRes.recordset[0].userId,
         'Paiement confirmé',
-        `Votre paiement de ${montant} MAD a été enregistré. Référence: ${reference || 'N/A'}.`,
+        `Votre paiement de ${montant} MAD a été enregistré. Référence : ${reference || 'N/A'}.`,
         'paiement'
       );
     }
@@ -86,16 +88,17 @@ const getSuiviPaiements = async (req, res, next) => {
   try {
     const pool = await getPool();
     const result = await pool.request()
-      .input('id', sql.Int, req.params.habitantId)
+      .input('habitantId', sql.Int, req.params.habitantId)
       .query(`
-        SELECT c.id AS chargeId, c.nom AS chargeNom, c.description, c.montant,
-               c.dateEcheance, c.statut, c.type,
+        SELECT c.id AS chargeId, c.nom AS chargeNom, c.description,
+               c.montant, c.dateEcheance, c.statut, c.type,
                pay.id AS paiementId, pay.datePaiement, pay.modePaiement, pay.reference
         FROM Charges c
-        LEFT JOIN Paiements pay ON c.id = pay.chargeId AND pay.habitantId = @id
-        WHERE c.habitantId = @id
+        LEFT JOIN Paiements pay ON c.id = pay.chargeId AND pay.habitantId = @habitantId
+        WHERE c.habitantId = @habitantId
         ORDER BY c.dateEcheance DESC
       `);
+
     res.json({ success: true, data: result.recordset });
   } catch (err) { next(err); }
 };

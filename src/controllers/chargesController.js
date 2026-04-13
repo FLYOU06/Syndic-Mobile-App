@@ -9,6 +9,7 @@ const getAllCharges = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const conditions = [];
 
+    // Syndic — only charges in their buildings
     if (req.user.role === 'syndic') {
       const r = await pool.request()
         .input('userId', sql.Int, req.user.id)
@@ -16,6 +17,7 @@ const getAllCharges = async (req, res, next) => {
       conditions.push(`i.syndicId = ${r.recordset[0]?.id}`);
     }
 
+    // Habitant — only their own charges
     if (req.user.role === 'proprietaire' || req.user.role === 'locataire') {
       const r = await pool.request()
         .input('userId', sql.Int, req.user.id)
@@ -68,44 +70,66 @@ const getChargeById = async (req, res, next) => {
 };
 
 // POST /api/charges  (syndic only)
+// ─────────────────────────────────────────────────────────────────────
+// Creates ONE charge row PER habitant in the immeuble, then notifies
+// each of them. Every habitant gets their own individual charge record.
+// ─────────────────────────────────────────────────────────────────────
 const createCharge = async (req, res, next) => {
   try {
-    const { immeubleId, habitantId, nom, description, montant, dateEcheance, type } = req.body;
+    const { immeubleId, nom, description, montant, dateEcheance, type } = req.body;
 
     if (!immeubleId || !nom || !montant || !dateEcheance)
-      return res.status(400).json({ success: false, message: 'immeubleId, nom, montant and dateEcheance are required.' });
+      return res.status(400).json({
+        success: false,
+        message: 'immeubleId, nom, montant and dateEcheance are required.',
+      });
 
     const pool = await getPool();
-    const result = await pool.request()
-      .input('immeubleId',  sql.Int,           immeubleId)
-      .input('habitantId',  sql.Int,           habitantId  || null)
-      .input('nom',         sql.NVarChar,      nom)
-      .input('description', sql.NVarChar,      description || null)
-      .input('montant',     sql.Decimal(10,2), montant)
-      .input('dateEcheance',sql.Date,          dateEcheance)
-      .input('type',        sql.NVarChar,      type        || null)
-      .query(`
-        INSERT INTO Charges (immeubleId,habitantId,nom,description,montant,dateEcheance,type)
-        OUTPUT INSERTED.*
-        VALUES (@immeubleId,@habitantId,@nom,@description,@montant,@dateEcheance,@type)
-      `);
 
-    // Notify the habitant
-    if (habitantId) {
-      const userRes = await pool.request()
-        .input('id', sql.Int, habitantId)
-        .query('SELECT userId FROM Habitants WHERE id = @id');
-      if (userRes.recordset[0]) {
-        await notificationService.create(
-          userRes.recordset[0].userId,
-          'Nouvelle charge',
-          `Une nouvelle charge "${nom}" de ${montant} MAD a été ajoutée. Échéance : ${dateEcheance}.`,
-          'charge'
-        );
-      }
+    // Fetch ALL habitants of this immeuble
+    const habitantsRes = await pool.request()
+      .input('immeubleId', sql.Int, immeubleId)
+      .query('SELECT id, userId FROM Habitants WHERE immeubleId = @immeubleId');
+
+    const habitants = habitantsRes.recordset;
+
+    if (habitants.length === 0)
+      return res.status(404).json({
+        success: false,
+        message: 'No habitants found for this immeuble.',
+      });
+
+    const createdCharges = [];
+    const notifMsg = `Une nouvelle charge "${nom}" de ${montant} MAD vous a été assignée. Échéance : ${dateEcheance}.`;
+
+    // Insert one charge per habitant + notify each one
+    for (const habitant of habitants) {
+      const chargeRes = await pool.request()
+        .input('immeubleId',  sql.Int,           immeubleId)
+        .input('habitantId',  sql.Int,           habitant.id)
+        .input('nom',         sql.NVarChar,      nom)
+        .input('description', sql.NVarChar,      description || null)
+        .input('montant',     sql.Decimal(10,2), montant)
+        .input('dateEcheance',sql.Date,          dateEcheance)
+        .input('type',        sql.NVarChar,      type || null)
+        .query(`
+          INSERT INTO Charges (immeubleId, habitantId, nom, description, montant, dateEcheance, type)
+          OUTPUT INSERTED.*
+          VALUES (@immeubleId, @habitantId, @nom, @description, @montant, @dateEcheance, @type)
+        `);
+
+      createdCharges.push(chargeRes.recordset[0]);
+
+      // Notify this habitant
+      await notificationService.create(habitant.userId, 'Nouvelle charge', notifMsg, 'charge');
     }
 
-    res.status(201).json({ success: true, message: 'Charge created.', data: result.recordset[0] });
+    res.status(201).json({
+      success: true,
+      message: `Charge created and assigned to ${createdCharges.length} habitant(s).`,
+      totalAssigned: createdCharges.length,
+      data: createdCharges,
+    });
   } catch (err) { next(err); }
 };
 
@@ -114,6 +138,7 @@ const updateCharge = async (req, res, next) => {
   try {
     const { nom, description, montant, dateEcheance, statut, type } = req.body;
     const pool = await getPool();
+
     await pool.request()
       .input('id',          sql.Int,           req.params.id)
       .input('nom',         sql.NVarChar,      nom)
@@ -126,8 +151,9 @@ const updateCharge = async (req, res, next) => {
         UPDATE Charges
         SET nom=@nom, description=@description, montant=@montant,
             dateEcheance=@dateEcheance, statut=@statut, type=@type, updatedAt=GETDATE()
-        WHERE id=@id
+        WHERE id = @id
       `);
+
     res.json({ success: true, message: 'Charge updated.' });
   } catch (err) { next(err); }
 };
@@ -139,6 +165,7 @@ const deleteCharge = async (req, res, next) => {
     await pool.request()
       .input('id', sql.Int, req.params.id)
       .query('DELETE FROM Charges WHERE id = @id');
+
     res.json({ success: true, message: 'Charge deleted.' });
   } catch (err) { next(err); }
 };
@@ -147,6 +174,7 @@ const deleteCharge = async (req, res, next) => {
 const getImpayesDashboard = async (req, res, next) => {
   try {
     const pool = await getPool();
+
     const syndicRes = await pool.request()
       .input('userId', sql.Int, req.user.id)
       .query('SELECT id FROM Syndics WHERE userId = @userId');
@@ -160,8 +188,7 @@ const getImpayesDashboard = async (req, res, next) => {
                SUM(c.montant) AS montantTotal
         FROM Charges c
         INNER JOIN Immeubles i ON c.immeubleId = i.id
-        WHERE i.syndicId = @syndicId
-          AND c.statut IN ('en_attente','en_retard')
+        WHERE i.syndicId = @syndicId AND c.statut IN ('en_attente','en_retard')
         GROUP BY i.id, i.nom
         ORDER BY montantTotal DESC
       `);
@@ -170,15 +197,18 @@ const getImpayesDashboard = async (req, res, next) => {
       .input('syndicId', sql.Int, syndicId)
       .query(`
         SELECT
-          COUNT(*) AS totalCharges,
-          SUM(CASE WHEN c.statut='paye'                       THEN c.montant ELSE 0 END) AS totalPercu,
-          SUM(CASE WHEN c.statut IN('en_attente','en_retard') THEN c.montant ELSE 0 END) AS totalImpaye
+          COUNT(*)  AS totalCharges,
+          SUM(CASE WHEN c.statut = 'paye'                       THEN c.montant ELSE 0 END) AS totalPercu,
+          SUM(CASE WHEN c.statut IN ('en_attente','en_retard')  THEN c.montant ELSE 0 END) AS totalImpaye
         FROM Charges c
         INNER JOIN Immeubles i ON c.immeubleId = i.id
         WHERE i.syndicId = @syndicId
       `);
 
-    res.json({ success: true, data: { summary: totals.recordset[0], parImmeuble: parImmeuble.recordset } });
+    res.json({
+      success: true,
+      data: { summary: totals.recordset[0], parImmeuble: parImmeuble.recordset },
+    });
   } catch (err) { next(err); }
 };
 

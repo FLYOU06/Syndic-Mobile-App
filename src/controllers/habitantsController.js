@@ -1,10 +1,10 @@
 const { getPool, sql } = require('../config/database');
 
-// GET /api/habitants  (syndic only)
+// GET /api/habitants  (syndic — list all habitants in their buildings)
 const getAllHabitants = async (req, res, next) => {
   try {
     const pool = await getPool();
-    const { type, immeubleId, proprietaireId } = req.query;
+    const { immeubleId, type } = req.query;
 
     const syndicRes = await pool.request()
       .input('userId', sql.Int, req.user.id)
@@ -14,18 +14,17 @@ const getAllHabitants = async (req, res, next) => {
     const conditions = ['i.syndicId = @syndicId'];
     const request = pool.request().input('syndicId', sql.Int, syndicId);
 
-    if (type)           { conditions.push('h.type = @type');                       request.input('type',           sql.NVarChar, type); }
-    if (immeubleId)     { conditions.push('h.immeubleId = @immeubleId');           request.input('immeubleId',     sql.Int, immeubleId); }
-    if (proprietaireId) { conditions.push('h.proprietaireId = @proprietaireId');   request.input('proprietaireId', sql.Int, proprietaireId); }
+    if (immeubleId) { conditions.push('h.immeubleId = @immeubleId'); request.input('immeubleId', sql.Int, immeubleId); }
+    if (type)       { conditions.push('h.type = @type');             request.input('type', sql.NVarChar, type); }
 
     const result = await request.query(`
       SELECT h.*, u.email, u.isActive,
              i.nom  AS immeubleNom,
              p.nom  AS proprietaireNom, p.prenom AS proprietairePrenom
       FROM Habitants h
-      INNER JOIN Users      u ON h.userId         = u.id
-      LEFT JOIN  Immeubles  i ON h.immeubleId      = i.id
-      LEFT JOIN  Habitants  p ON h.proprietaireId  = p.id
+      INNER JOIN Users      u ON h.userId        = u.id
+      LEFT JOIN  Immeubles  i ON h.immeubleId     = i.id
+      LEFT JOIN  Habitants  p ON h.proprietaireId = p.id
       WHERE ${conditions.join(' AND ')}
       ORDER BY h.type, h.nom, h.prenom
     `);
@@ -45,9 +44,9 @@ const getHabitantById = async (req, res, next) => {
                i.nom  AS immeubleNom,
                p.nom  AS proprietaireNom, p.prenom AS proprietairePrenom
         FROM Habitants h
-        INNER JOIN Users     u ON h.userId         = u.id
-        LEFT JOIN  Immeubles i ON h.immeubleId      = i.id
-        LEFT JOIN  Habitants p ON h.proprietaireId  = p.id
+        INNER JOIN Users      u ON h.userId        = u.id
+        LEFT JOIN  Immeubles  i ON h.immeubleId     = i.id
+        LEFT JOIN  Habitants  p ON h.proprietaireId = p.id
         WHERE h.id = @id
       `);
 
@@ -79,7 +78,7 @@ const updateHabitant = async (req, res, next) => {
         SET nom=@nom, prenom=@prenom, telephone=@telephone, appartement=@appartement,
             immeubleId=@immeubleId, proprietaireId=@proprietaireId,
             dateEntree=@dateEntree, dateSortie=@dateSortie, updatedAt=GETDATE()
-        WHERE id=@id
+        WHERE id = @id
       `);
 
     res.json({ success: true, message: 'Habitant updated.' });
@@ -93,11 +92,12 @@ const deleteHabitant = async (req, res, next) => {
     await pool.request()
       .input('id', sql.Int, req.params.id)
       .query('DELETE FROM Habitants WHERE id = @id');
+
     res.json({ success: true, message: 'Habitant deleted.' });
   } catch (err) { next(err); }
 };
 
-// GET /api/habitants/profile/me  (proprietaire or locataire self)
+// GET /api/habitants/profile/me  (proprietaire or locataire — own profile)
 const getMyProfile = async (req, res, next) => {
   try {
     const pool = await getPool();
@@ -106,12 +106,12 @@ const getMyProfile = async (req, res, next) => {
       .query(`
         SELECT h.*, u.email,
                i.nom     AS immeubleNom,    i.adresse AS immeubleAdresse,
-               p.nom     AS proprietaireNom, p.prenom AS proprietairePrenom,
+               p.nom     AS proprietaireNom, p.prenom  AS proprietairePrenom,
                p.telephone AS proprietaireTel
         FROM Habitants h
-        INNER JOIN Users     u ON h.userId         = u.id
-        LEFT JOIN  Immeubles i ON h.immeubleId      = i.id
-        LEFT JOIN  Habitants p ON h.proprietaireId  = p.id
+        INNER JOIN Users      u ON h.userId        = u.id
+        LEFT JOIN  Immeubles  i ON h.immeubleId     = i.id
+        LEFT JOIN  Habitants  p ON h.proprietaireId = p.id
         WHERE h.userId = @userId
       `);
 

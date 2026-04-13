@@ -14,7 +14,7 @@ const getAllImmeubles = async (req, res, next) => {
       .input('syndicId', sql.Int, syndicId)
       .query(`
         SELECT i.*,
-          (SELECT COUNT(*) FROM Proprietaires WHERE immeubleId = i.id) AS nombreProprietaires
+          (SELECT COUNT(*) FROM Habitants WHERE immeubleId = i.id) AS nombreHabitants
         FROM Immeubles i
         WHERE i.syndicId = @syndicId
         ORDER BY i.nom
@@ -34,7 +34,7 @@ const getImmeubleById = async (req, res, next) => {
       .input('id', sql.Int, req.params.id)
       .query(`
         SELECT i.*,
-          (SELECT COUNT(*) FROM Proprietaires WHERE immeubleId = i.id) AS nombreProprietaires
+          (SELECT COUNT(*) FROM Habitants WHERE immeubleId = i.id) AS nombreHabitants
         FROM Immeubles i
         WHERE i.id = @id
       `);
