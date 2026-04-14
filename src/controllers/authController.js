@@ -2,8 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const { getPool, sql } = require('../config/database');
 
-// ── helper: fetch profile based on role ───────────────────────────
-const getProfile = async (pool, role, userId) => {
+// ── helper ───────────────────────────────────────────────────────────
+const fetchProfile = async (pool, role, userId) => {
   if (role === 'syndic') {
     const r = await pool.request()
       .input('userId', sql.Int, userId)
@@ -14,10 +14,10 @@ const getProfile = async (pool, role, userId) => {
     const r = await pool.request()
       .input('userId', sql.Int, userId)
       .query(`
-        SELECT h.*, i.nom AS immeubleNom,
+        SELECT h.*, i.nom AS immeubleNom, i.adresse AS immeubleAdresse,
                p.nom AS proprietaireNom, p.prenom AS proprietairePrenom
-        FROM Habitants h
-        LEFT JOIN Immeubles i ON h.immeubleId = i.id
+        FROM   Habitants h
+        LEFT JOIN Immeubles i ON h.immeubleId     = i.id
         LEFT JOIN Habitants p ON h.proprietaireId = p.id
         WHERE h.userId = @userId
       `);
@@ -26,136 +26,59 @@ const getProfile = async (pool, role, userId) => {
   return null;
 };
 
-// POST /api/auth/login
+// ── POST /api/auth/login ─────────────────────────────────────────────
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
 
-    const pool = await getPool();
+    const pool   = await getPool();
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
       .query('SELECT * FROM Users WHERE email = @email AND isActive = 1');
 
     const user = result.recordset[0];
-    if (!user)
+    if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-
-    const profile = await getProfile(pool, user.role, user.id);
-
-    const token = jwt.sign(
+    const profile = await fetchProfile(pool, user.role, user.id);
+    const token   = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
-    res.json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: { id: user.id, email: user.email, role: user.role, profile },
-    });
+    res.json({ success: true, token, user: { id: user.id, email: user.email, role: user.role, profile } });
   } catch (err) { next(err); }
 };
 
-// POST /api/auth/register  (syndic only)
-const register = async (req, res, next) => {
-  try {
-    const {
-      email, password, role,
-      nom, prenom, telephone,
-      immeubleId, appartement,
-      proprietaireId,
-      dateEntree, dateSortie,
-    } = req.body;
-
-    if (!email || !password || !role || !nom || !prenom)
-      return res.status(400).json({ success: false, message: 'Missing required fields: email, password, role, nom, prenom.' });
-
-    const validRoles = ['syndic', 'proprietaire', 'locataire'];
-    if (!validRoles.includes(role))
-      return res.status(400).json({ success: false, message: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
-
-    const pool = await getPool();
-
-    const exists = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('SELECT id FROM Users WHERE email = @email');
-    if (exists.recordset.length > 0)
-      return res.status(409).json({ success: false, message: 'Email already registered.' });
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const userResult = await pool.request()
-      .input('email',    sql.NVarChar, email)
-      .input('password', sql.NVarChar, hashedPassword)
-      .input('role',     sql.NVarChar, role)
-      .query(`INSERT INTO Users (email, password, role) OUTPUT INSERTED.id VALUES (@email, @password, @role)`);
-
-    const userId = userResult.recordset[0].id;
-
-    if (role === 'syndic') {
-      await pool.request()
-        .input('userId',    sql.Int,      userId)
-        .input('nom',       sql.NVarChar, nom)
-        .input('prenom',    sql.NVarChar, prenom)
-        .input('telephone', sql.NVarChar, telephone || null)
-        .query(`INSERT INTO Syndics (userId, nom, prenom, telephone) VALUES (@userId, @nom, @prenom, @telephone)`);
-    }
-
-    if (role === 'proprietaire' || role === 'locataire') {
-      await pool.request()
-        .input('userId',         sql.Int,      userId)
-        .input('type',           sql.NVarChar, role)
-        .input('nom',            sql.NVarChar, nom)
-        .input('prenom',         sql.NVarChar, prenom)
-        .input('telephone',      sql.NVarChar, telephone      || null)
-        .input('immeubleId',     sql.Int,      immeubleId     || null)
-        .input('appartement',    sql.NVarChar, appartement    || null)
-        .input('proprietaireId', sql.Int,      proprietaireId || null)
-        .input('dateEntree',     sql.Date,     dateEntree     || null)
-        .input('dateSortie',     sql.Date,     dateSortie     || null)
-        .query(`
-          INSERT INTO Habitants (userId, type, nom, prenom, telephone, immeubleId, appartement, proprietaireId, dateEntree, dateSortie)
-          VALUES (@userId, @type, @nom, @prenom, @telephone, @immeubleId, @appartement, @proprietaireId, @dateEntree, @dateSortie)
-        `);
-    }
-
-    res.status(201).json({ success: true, message: `${role} registered successfully.`, userId });
-  } catch (err) { next(err); }
-};
-
-// GET /api/auth/me
+// ── GET /api/auth/me ─────────────────────────────────────────────────
 const getMe = async (req, res, next) => {
   try {
-    const pool = await getPool();
+    const pool   = await getPool();
     const result = await pool.request()
       .input('id', sql.Int, req.user.id)
       .query('SELECT id, email, role, isActive, createdAt FROM Users WHERE id = @id');
-
-    const user = result.recordset[0];
-    const profile = await getProfile(pool, user.role, user.id);
+    const user    = result.recordset[0];
+    const profile = await fetchProfile(pool, user.role, user.id);
     res.json({ success: true, user: { ...user, profile } });
   } catch (err) { next(err); }
 };
 
-// PUT /api/auth/change-password
+// ── PUT /api/auth/change-password ────────────────────────────────────
 const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const pool = await getPool();
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ success: false, message: 'currentPassword and newPassword are required.' });
 
+    const pool   = await getPool();
     const result = await pool.request()
       .input('id', sql.Int, req.user.id)
       .query('SELECT password FROM Users WHERE id = @id');
 
-    const isMatch = await bcrypt.compare(currentPassword, result.recordset[0].password);
-    if (!isMatch)
+    if (!(await bcrypt.compare(currentPassword, result.recordset[0].password)))
       return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
 
     const hashed = await bcrypt.hash(newPassword, 12);
@@ -164,8 +87,8 @@ const changePassword = async (req, res, next) => {
       .input('password', sql.NVarChar, hashed)
       .query('UPDATE Users SET password=@password, updatedAt=GETDATE() WHERE id=@id');
 
-    res.json({ success: true, message: 'Password updated successfully.' });
+    res.json({ success: true, message: 'Password updated.' });
   } catch (err) { next(err); }
 };
 
-module.exports = { login, register, getMe, changePassword };
+module.exports = { login, getMe, changePassword };

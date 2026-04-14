@@ -8,13 +8,12 @@ const getNotifications = async (req, res, next) => {
     const { isRead, page = 1, limit = 30 } = req.query;
     const offset = (page - 1) * limit;
 
-    let query = `SELECT * FROM Notifications WHERE userId = @userId`;
-    if (isRead !== undefined) query += ` AND isRead = ${isRead === 'true' ? 1 : 0}`;
-    query += ` ORDER BY createdAt DESC OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
+    let where = 'WHERE userId = @userId';
+    if (isRead !== undefined) where += ` AND isRead = ${isRead === 'true' ? 1 : 0}`;
 
     const result = await pool.request()
       .input('userId', sql.Int, req.user.id)
-      .query(query);
+      .query(`SELECT * FROM Notifications ${where} ORDER BY createdAt DESC OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`);
 
     const unread = await pool.request()
       .input('userId', sql.Int, req.user.id)
@@ -32,7 +31,7 @@ const markAsRead = async (req, res, next) => {
       .input('id',     sql.Int, req.params.id)
       .input('userId', sql.Int, req.user.id)
       .query('UPDATE Notifications SET isRead=1 WHERE id=@id AND userId=@userId');
-    res.json({ success: true, message: 'Notification marked as read.' });
+    res.json({ success: true, message: 'Marked as read.' });
   } catch (err) { next(err); }
 };
 
@@ -47,16 +46,14 @@ const markAllAsRead = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// POST /api/notifications/send  (syndic broadcasts to all habitants of a building)
+// POST /api/notifications/send  (syndic broadcasts to a building)
 const sendNotification = async (req, res, next) => {
   try {
     const { immeubleId, titre, message, type } = req.body;
     if (!immeubleId || !titre || !message)
-      return res.status(400).json({ success: false, message: 'Missing required fields.' });
+      return res.status(400).json({ success: false, message: 'immeubleId, titre and message are required.' });
 
     const pool = await getPool();
-
-    // Get all habitants (proprietaires + locataires) of the building via their userId
     const habitants = await pool.request()
       .input('immeubleId', sql.Int, immeubleId)
       .query('SELECT userId FROM Habitants WHERE immeubleId = @immeubleId');

@@ -1,11 +1,7 @@
 const { getPool, sql } = require('../config/database');
 
 /**
- * Create a notification for a user
- * @param {number} userId
- * @param {string} titre
- * @param {string} message
- * @param {string} type  - 'info' | 'alerte' | 'paiement' | 'assemblee' | 'charge'
+ * Create a single in-app notification.
  */
 const create = async (userId, titre, message, type = 'info') => {
   try {
@@ -15,17 +11,14 @@ const create = async (userId, titre, message, type = 'info') => {
       .input('titre',   sql.NVarChar, titre)
       .input('message', sql.NVarChar, message)
       .input('type',    sql.NVarChar, type)
-      .query(`
-        INSERT INTO Notifications (userId, titre, message, type)
-        VALUES (@userId, @titre, @message, @type)
-      `);
+      .query(`INSERT INTO Notifications (userId, titre, message, type) VALUES (@userId, @titre, @message, @type)`);
   } catch (err) {
-    console.error('[NotificationService] Failed to create notification:', err.message);
+    console.error('[NotificationService] create error:', err.message);
   }
 };
 
 /**
- * Broadcast a notification to multiple users
+ * Broadcast the same notification to multiple userIds.
  */
 const broadcast = async (userIds, titre, message, type = 'info') => {
   for (const userId of userIds) {
