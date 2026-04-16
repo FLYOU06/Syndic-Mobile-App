@@ -6,6 +6,5 @@ const { getNotifications, markAsRead, markAllAsRead, sendNotification } = requir
 router.get('/',           authenticate, getNotifications);
 router.put('/read-all',   authenticate, markAllAsRead);
 router.put('/:id/read',   authenticate, markAsRead);
-router.post('/send',      authenticate, authorize('syndic'), sendNotification);
-
+router.post('/send',      authenticate,   authorize('syndic', 'proprietaire', 'locataire'),   sendNotification);
 module.exports = router;

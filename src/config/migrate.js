@@ -142,13 +142,20 @@ const migrate = async () => {
         immeubleId   INT NOT NULL FOREIGN KEY REFERENCES Immeubles(id),
         syndicId     INT NOT NULL FOREIGN KEY REFERENCES Syndics(id),
         titre        NVARCHAR(255) NOT NULL,
+        type         NVARCHAR(20)  NOT NULL DEFAULT 'ordinaire'
+                     CHECK (type IN ('ordinaire','extraordinaire')),
         description  NVARCHAR(MAX),
-        dateAG       DATETIME NOT NULL,
+        dateAG       DATE NOT NULL,
+        heure        NVARCHAR(10),
         lieu         NVARCHAR(255),
-        statut       NVARCHAR(20) NOT NULL DEFAULT 'planifiee'
+        statut       NVARCHAR(20)  NOT NULL DEFAULT 'planifiee'
                      CHECK (statut IN ('planifiee','en_cours','terminee','annulee')),
         ordreJour    NVARCHAR(MAX),
         procesVerbal NVARCHAR(MAX),
+        presents     INT NOT NULL DEFAULT 0,
+        absents      INT NOT NULL DEFAULT 0,
+        procurations INT NOT NULL DEFAULT 0,
+        pvGenere     BIT NOT NULL DEFAULT 0,
         createdAt    DATETIME NOT NULL DEFAULT GETDATE(),
         updatedAt    DATETIME NOT NULL DEFAULT GETDATE()
       )
