@@ -70,6 +70,7 @@ const formatForFlutter = (row) => ({
   absents:      row.absents      ?? 0,
   procurations: row.procurations ?? 0,
   pvGenere:     row.pvGenere     === true || row.pvGenere === 1,
+  convocation:  row.convocation  ?? null,
   immeubleId:   row.immeubleId,
   immeubleNom:  row.immeubleNom,
   syndicNom:    row.syndicNom,
@@ -162,6 +163,7 @@ const createAssemblee = async (req, res, next) => {
     const {
       titre, type, date, heure, lieu,
       ordreDuJour, statut, description,
+      convocation,
       immeubleId: bodyImmeubleId,
     } = req.body;
 
@@ -196,12 +198,13 @@ const createAssemblee = async (req, res, next) => {
       .input('lieu',        sql.NVarChar, lieu  || null)
       .input('statut',      sql.NVarChar, statut || 'planifiee')
       .input('ordreJour',   sql.NVarChar, ordreJourJson)
+      .input('convocation', sql.NVarChar, convocation || null)
       .query(`
         INSERT INTO AssembleesGenerales
-          (immeubleId, syndicId, titre, type, description, dateAG, heure, lieu, statut, ordreJour)
+          (immeubleId, syndicId, titre, type, description, dateAG, heure, lieu, statut, ordreJour, convocation)
         OUTPUT INSERTED.*
         VALUES
-          (@immeubleId, @syndicId, @titre, @type, @description, @dateAG, @heure, @lieu, @statut, @ordreJour)
+          (@immeubleId, @syndicId, @titre, @type, @description, @dateAG, @heure, @lieu, @statut, @ordreJour, @convocation)
       `);
 
     const created = formatForFlutter(result.recordset[0]);
@@ -240,7 +243,7 @@ const updateAssemblee = async (req, res, next) => {
     const {
       titre, type, date, heure, lieu,
       ordreDuJour, statut, description,
-      presents, absents, procurations, pvGenere,
+      presents, absents, procurations, pvGenere, convocation,
     } = req.body;
 
     const pool = await getPool();
@@ -278,6 +281,7 @@ const updateAssemblee = async (req, res, next) => {
       .input('absents',      sql.Int,      absents      ?? cur.absents      ?? 0)
       .input('procurations', sql.Int,      procurations ?? cur.procurations ?? 0)
       .input('pvGenere',     sql.Bit,      pvGenere     != null ? (pvGenere ? 1 : 0) : (cur.pvGenere ?? 0))
+      .input('convocation', sql.NVarChar, convocation !== undefined ? convocation : (cur.convocation ?? null))
       .query(`
         UPDATE AssembleesGenerales SET
           titre        = @titre,
@@ -292,6 +296,7 @@ const updateAssemblee = async (req, res, next) => {
           absents      = @absents,
           procurations = @procurations,
           pvGenere     = @pvGenere,
+          convocation  = @convocation,
           updatedAt    = GETDATE()
         WHERE id = @id
       `);

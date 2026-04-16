@@ -156,6 +156,7 @@ const migrate = async () => {
         absents      INT NOT NULL DEFAULT 0,
         procurations INT NOT NULL DEFAULT 0,
         pvGenere     BIT NOT NULL DEFAULT 0,
+        convocation  NVARCHAR(MAX),
         createdAt    DATETIME NOT NULL DEFAULT GETDATE(),
         updatedAt    DATETIME NOT NULL DEFAULT GETDATE()
       )
